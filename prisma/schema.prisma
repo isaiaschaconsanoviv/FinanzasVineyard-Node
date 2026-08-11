@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre    String?
+  correo    String?  @unique
+  usuario   String   @unique
+  password  String   
+  rol       String   @default("READONLY")
+  activo    Boolean  @default(true)
+  lastLogin DateTime @default(now())
+}
+
+model Entrada {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  fecha        DateTime   @default(now())
+  tipoCambio   Float
+  ingreso      Float      @default(0)
+  notas        String?
+  elaboradoPor String
+  registros    Registro[]
+  gastos       Gasto[]
+}
+
+model Registro {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  entradaId     String      @db.ObjectId
+  entrada       Entrada     @relation(fields: [entradaId], references: [id])
+  nombre        String
+  diezmo        Float       @default(0)
+  monedaDiezmo  String
+  ofrenda       Float       @default(0)
+  monedaOfrenda String
+  otrosRubros   OtroRubro[]
+}
+
+model OtroRubro {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  registroId String   @db.ObjectId
+  registro   Registro @relation(fields: [registroId], references: [id])
+  tipo       String
+  importe    Float
+  moneda     String
+}
+
+model Gasto {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  entradaId    String?  @db.ObjectId
+  entrada      Entrada? @relation(fields: [entradaId], references: [id], onDelete: Cascade)
+  fecha        DateTime @default(now())
+  cuenta       String
+  concepto     String
+  importe      Float
+  elaboradoPor String
+  comprobanteUrl String?
+}
+
+model Corte {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  fecha        DateTime        @default(now())
+  notas        String?
+  elaboradoPor String
+  registros    RegistroCorte[]
+}
+
+model RegistroCorte {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  corteId      String  @db.ObjectId
+  corte        Corte   @relation(fields: [corteId], references: [id], onDelete: Cascade)
+  concepto     String
+  saldoFisico  Float
+  saldoSistema Float
+  diferencia   Float
+}
+
+model ReglaDistribucion {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre          String   @unique
+  tipo            String   // PERCENTAGE | FIXED
+  valor           Float
+  orden           Int      // Orden de cálculo
+  ordenVisual     Int      @default(0) // Orden de visualización en la UI
+  baseDeCalculo   String   // BRUTO_DIEZMOS | REMANENTE | BRUTO_TOTAL
+  redondeoDiez    Boolean  @default(false)
+  condicionDia    String?  // SUNDAY | LAST_SUNDAY
+  condicionMinimo Float?   // 100
+  activo          Boolean  @default(true)
+}

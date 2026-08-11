@@ -1,0 +1,35 @@
+﻿@page
+@model FinanzasVineyard.Pages.Tesoreria.IndexModel
+@{
+    ViewData["Title"] = "Tesorería";
+}
+
+<a style="margin-right:15px;float:left;" class="btn btn-dark" asp-page="/Entrada/Index"><i class="fa fa-chevron-left"></i></a> 
+<h1>Tesorería</h1>
+<hr />
+<br />
+
+<div class="row">
+    <div class="col-md-12">
+        <a style="float: right;" class="btn btn-dark" asp-page="/Corte/Index"><i class="fa fa-clipboard-check"></i> Ver cortes</a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <table class="table">
+            <thead>
+                <th>@Html.DisplayNameFor(model => model.RegistrosDeTesoreria[0].Concepto)</th>
+                <th>@Html.DisplayNameFor(model => model.RegistrosDeTesoreria[0].Cantidad)</th>
+            </thead>
+            <tbody>
+                @foreach(var registro in Model.RegistrosDeTesoreria)
+                {
+                    <tr>
+                        <td class="@registro.ClaseCss">@registro.Concepto</td>
+                        <td class="@registro.ClaseCss">@registro.Cantidad.ToString("C2") MXN</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

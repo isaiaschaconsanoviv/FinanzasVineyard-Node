@@ -1,0 +1,65 @@
+﻿@page
+@model FinanzasVineyard.Pages.Gasto.RegistrarModel
+@{
+    ViewData["Title"] = "Registrar gasto";
+}
+
+<a style="margin-right:15px;float:left;" class="btn btn-dark" asp-page="/Gasto/Index"><i class="fa fa-chevron-left"></i></a> 
+<h1>Registrar nuevo gasto</h1>
+<hr /><br />
+
+<div class="row">
+    <div class="col-md-12">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Gasto.Fecha" class="control-label"></label>
+                <input asp-for="Gasto.Fecha" type="date" class="form-control" />
+                <span asp-validation-for="Gasto.Fecha" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="Gasto.Importe" class="control-label"></label>
+                <input asp-for="Gasto.Importe" class="form-control" />
+                <span asp-validation-for="Gasto.Importe" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="Gasto.Concepto" class="control-label"></label>
+                <input asp-for="Gasto.Concepto" class="form-control" />
+                <span asp-validation-for="Gasto.Concepto" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="Gasto.Cuenta" class="control-label"></label>
+                <select asp-for="Gasto.Cuenta" class="form-control">
+                    @foreach(var concepto in Model.GetConceptos())
+                    {
+                        @if (concepto == "Ingresos")
+                        {
+                            <option value="@concepto" selected>@concepto (@Model.GetTotalPorConcepto(concepto).ToString("C2") MXN)</option>
+                        }
+                        else
+                        {
+                            <option value="@concepto">@concepto (@Model.GetTotalPorConcepto(concepto).ToString("C2") MXN)</option>
+                        }
+                    }
+
+                    @foreach(var concepto in Model.GetOtrosConceptos())
+                    {
+                        <option value="@concepto">@concepto (@Model.GetTotalPorOtrosConcepto(concepto).ToString("C2") MXN)</option>
+                    }
+                </select>
+                <span asp-validation-for="Gasto.Cuenta" class="text-danger"></span>
+            </div>
+            <br />
+            <center>
+                @if(Model.Mensaje != string.Empty)
+                {
+                 <i class="text-danger">@Model.Mensaje</i><br />   
+                }
+                <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> Guardar</button>
+            </center>
+        </form>
+    </div>
+</div>

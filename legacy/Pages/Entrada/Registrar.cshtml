@@ -1,0 +1,538 @@
+﻿@page "{id:int}"
+@using Microsoft.AspNetCore.Antiforgery
+@model FinanzasVineyard.Pages.Entrada.RegistrarModel
+@inject IAntiforgery antiforgery
+@{
+    ViewData["Title"] = "Agregar un registro";
+    var token = antiforgery.GetAndStoreTokens(HttpContext).RequestToken;
+}
+
+
+<h1><a style="margin-right:15px;" class="btn btn-dark" asp-page="Index"><i class="fa fa-chevron-left"></i></a> @Model.entrada.Fecha.ToString("D")</h1> 
+<p style="font-size:small;">Elaborado por: @Model.entrada.ElaboradoPor</p>
+<form method="post" asp-page-handler="UpdateTipoCambio" role="form">
+    <div class="form-floating mb-3">
+        <input 
+            type="text" 
+            asp-for="@Model.tipoCambio" 
+            class="form-control"
+            onchange="this.form.submit()"/>
+        <label for="itipoCambio">Tasa de Cambio (MXN)</label>
+    </div>
+</form>
+<div class="row">
+    <form id="FormGuardarNota" asp-page-handler="GuardarNota" method="post" role="form">
+        <div class="form-floating">
+            <textarea asp-for="@Model.entradaNota" class="form-control" onchange="this.form.submit()"></textarea>
+            <label for="entradaNota">Notas</label>
+        </div>
+    </form>
+    <span asp-validation-for="@Model.entradaNota" class="text-danger"></span>
+</div>
+<br />
+
+<div class="row">
+    <div class="col-md-5" style="float:left;">
+        <h5>Agregar registro</h5>
+        <form method="post" asp-page-handler="OnPostAsync">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-floating mb-3">
+                <input asp-for="registro.Nombre" class="form-control" tabindex="1" />
+                <label asp-for="registro.Nombre"></label>
+                <span asp-validation-for="registro.Nombre" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="registro.Diezmo" class="form-control" tabindex="2" />
+                        <label asp-for="registro.Diezmo"></label>
+                        <span asp-validation-for="registro.Diezmo" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <select asp-for="registro.MonedaDiezmo" class="form-control" >
+                            <option value="MXN">MXN</option>
+                            <option value="USD">USD</option>
+                        </select>
+                        <label asp-for="registro.MonedaDiezmo"></label>
+                        <span asp-validation-for="registro.MonedaDiezmo" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="registro.Ofrenda" class="form-control" tabindex="3" />
+                        <label asp-for="registro.Ofrenda"></label>
+                        <span asp-validation-for="registro.Ofrenda" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <select asp-for="registro.MonedaOfrenda" class="form-control" >
+                            <option value="MXN">MXN</option>
+                            <option value="USD">USD</option>
+                        </select>
+                        <label asp-for="registro.MonedaOfrenda"></label>
+                        <span asp-validation-for="registro.MonedaOfrenda" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <h5>Otro concepto</h5>
+            <div class="form-floating mb-3">
+                <input asp-for="OtroTipo" class="form-control" tabindex="4" />
+                <label asp-for="OtroTipo"></label>
+                <span asp-validation-for="OtroTipo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="OtroImporte" class="form-control" tabindex="5" />
+                        <label asp-for="OtroImporte"></label>
+                        <span asp-validation-for="OtroImporte" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <select asp-for="OtroMoneda" class="form-control" >
+                            <option value="MXN">MXN</option>
+                            <option value="USD">USD</option>
+                        </select>
+                        <label asp-for="OtroMoneda"></label>
+                        <span asp-validation-for="OtroMoneda" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="form-group" style="float:right;">
+                <button onclick="this.form.submit" class="btn btn-primary" tabindex="6" ><i class="fa fa-plus"></i> Agregar</button>
+            </div>
+        </form>
+        </div>
+        <div class="col-md-2">&nbsp;</div>
+        <div class="col-md-5" style="float:right;">
+        @if(Model.GetOtrosPorConcepto().Count > 0)
+        {
+            <h4>Otros</h4>
+            <table class="table">
+                <thead>
+                    <th>Concepto</th>
+                    <th style="text-align:center;">MXN</th>
+                    <th style="text-align:center;">USD</th>
+                </thead>
+                <tbody>
+            @foreach(var concepto in Model.GetOtrosPorConcepto())
+            {
+                <tr>
+                    <td>@concepto.Concepto</td>
+                    <td style="text-align:center;">
+                        @if (concepto.ImporteMxn > 0)
+                        {
+                            @concepto.ImporteMxn.ToString("C2")
+                                    
+                        }
+                        else
+                        {
+                            <right>-</right>
+                        }
+                    </td>
+                    <td style="text-align:center;">
+                        @if (concepto.ImporteUsd > 0)
+                        {
+                            @concepto.ImporteUsd.ToString("C2")
+                                    
+                        }
+                        else
+                        {
+                            <right>-</right>
+                        }
+                    </td>
+                </tr>
+            }
+                </tbody>
+            </table>
+            <br />
+        }
+
+            <h4>Gastos <span style="float: right; text-decoration: unset !important;cursor: pointer;" class="btn btn-primary" onclick="RegistrarGasto(@Model.entrada.Id)"><i class="fa fa-receipt"></i> Registrar gasto</span></h4>
+            <table class="table">
+                <thead>
+                    <th>@Html.DisplayNameFor(model => model.gastos[0].Concepto)</th>
+                    <th style="text-align:right;">@Html.DisplayNameFor(model => model.gastos[0].Importe)</th>
+                </thead>
+                <tbody>
+            @foreach(var gasto in Model.gastos)
+            {
+                <tr>
+                    <td id="g-@gasto.Id-Concepto" data="@gasto.Concepto"><span style="text-decoration: unset !important;cursor: pointer;" class="btn-link" onclick="EditarGasto(@gasto.Id)"><i class="fa fa-pencil" style="font-size: small;"></i> @gasto.Concepto</span></td>
+                    <td id="g-@gasto.Id-Importe" data="@gasto.Importe" style="text-align:right;">
+                        @if (gasto.Importe > 0)
+                        {
+                            @gasto.Importe.ToString("C2")     
+                        }
+                        else
+                        {
+                            <right>-</right>
+                        }
+                    </td>
+                </tr>
+            }
+            @if(Model.gastos.Count == 0)
+            {
+                 <tr>
+                     <td colspan="2" style="font-size: small; text-align: center;">No hay gastos registrados por el momento</td>
+                 </tr>
+            }
+                </tbody>
+            </table>
+            <br />
+        
+        <h4>Totales finales</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Totales</th>
+                    <th style="text-align:right;">Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>10% Diezmo</td>
+                    <th style="text-align:right;">@Model.GetCalculoFinalDiezmo() MXN</th>
+                </tr>
+                <tr>
+                    <td>10% Misiones</td>
+                    <th style="text-align:right;">@Model.GetCalculoFinalMisiones() MXN</th>
+                </tr>
+                <tr>
+                    <td>5% Eventos</td>
+                    <th style="text-align:right;">@Model.GetCalculoFinalEventos() MXN</th>
+                </tr>
+                <tr>
+                    <td>Pastor</td>
+                    <td style="text-align:right;">
+                        @Model.GetCalculoParcialPastor() MXN
+                        @if(Model.apoyogasolina && Model.GetDarApoyoGasolina())
+                        {
+                            <br /><i><i style="font-size:small">(gasolina)</i> + $250.00 MXN</i>
+                        }
+                        @if(Model.apoyocelular && Model.GetDarApoyoCelular())
+                        {
+                            <br /><i><i style="font-size:small">(celular)</i> + $250.00 MXN</i>
+                        }
+                        <br /><b>@Model.GetCalculoFinalPastor() MXN</b>
+                    </td>
+                </tr>
+                <tr>
+                    <th><i style="font-size:large">Ingreso</i></th>
+                    <th style="text-align:right;"><i style="font-size:large">@Model.GetCalculoFinalIngreso() MXN</i></th>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<br />
+<br />
+<div class="row">
+    <div class="col-md-12">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.registro.Nombre)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.registro.Diezmo)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.registro.Ofrenda)
+                    </th>
+                    <th colspan=2>
+                        @Html.DisplayNameFor(model => model.registro.Otros)
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @if(Model.registros.Count > 0)
+                {
+                    @foreach (var item in Model.registros) 
+                    {
+                    <tr>
+                        @*<td>
+                            <i style="text-decoration: unset !important;cursor: pointer;" class="btn-link fa fa-pencil" onclick="EditarRegistro(@Model.entrada.Id, @item.Id)"></i>
+                        </td>*@
+                        <td id="r-@item.Id-Nombre" data="@Html.DisplayFor(modelItem => item.Nombre)">
+                            <span style="text-decoration: unset !important;cursor: pointer;" class="btn-link" onclick="EditarRegistro(@Model.entrada.Id, @item.Id)"><i class="fa fa-pencil" style="font-size: small;"></i> @Html.DisplayFor(modelItem => item.Nombre)</span>
+                        </td>
+                        <td id="r-@item.Id-Diezmo" data="@Html.DisplayFor(modelItem => item.Diezmo)">
+                            @item.Diezmo.ToString("C2") <span id="r-@item.Id-MonedaDiezmo" data="@Html.DisplayFor(modelItem => item.MonedaDiezmo)" style="font-size:small;">@item.MonedaDiezmo</span>
+                                @if(item.MonedaDiezmo != "MXN")
+                                {
+                                    <br />
+                                    <span style="font-size:x-small;">(@Model.ShowConversionDiezmo(item.Id))</span>
+                                }
+                            </td>
+                        <td id="r-@item.Id-Ofrenda" data="@Html.DisplayFor(modelItem => item.Ofrenda)">
+                            @item.Ofrenda.ToString("C2") <span id="r-@item.Id-MonedaOfrenda" data="@Html.DisplayFor(modelItem => item.MonedaOfrenda)" style="font-size:small;">@item.MonedaOfrenda</span>
+                            @if(item.MonedaOfrenda != "MXN")
+                                {
+                                    <br />
+                                    <span style="font-size:x-small;">(@Model.ShowConversionOfrenda(item.Id))</span>
+                                }
+                        </td>
+                        <td>
+                            <table>
+                                @foreach(var otro in Model.registros[Model.registros.IndexOf(item)].Otros)
+                                {
+                                    <tr>                                    
+                                        <td id="o-@otro.Id-Concepto" data="@Html.DisplayFor(modelItem => otro.Tipo)" style="font-size:x-small;">
+                                            <span style="text-decoration: unset !important;cursor: pointer;" class="btn-link" onclick="EditarOtro(@item.Id, @otro.Id)">@Html.DisplayFor(modelItem => otro.Tipo)</span>
+                                        </td>
+                                        <td id="o-@otro.Id-Importe" data="@Html.DisplayFor(modelItem => otro.Importe)" style="font-size:x-small;">
+                                            @otro.Importe.ToString("C2") <span id="o-@otro.Id-Moneda" data="@Html.DisplayFor(modelItem => otro.Moneda)" style="font-size:x-small;">@Html.DisplayFor(modelItem => otro.Moneda)</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                            @*<button onclick="AgregarOtro(this)" name="addotro-@Model.registros[Model.registros.IndexOf(item)].Id" data-idotro="@Model.registros[Model.registros.IndexOf(item)].Id" class="btn btn-sm btn-dark"><i class="fa fa-plus"></i></button>*@
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-dark" asp-page="../OtroRubro/Create" asp-route-id="@item.Id">+</a>
+                        </td>
+                    </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="text-align: center; font-size: small;">No hay registros por el momento</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan=1 align="right">&nbsp;</td>
+                    <td ><b>@Model.GetTotalDiezmos().ToString("C2") <span style="font-size:x-small;">MXN</span></b></td>
+                    <td ><b>@Model.GetTotalOfrendas().ToString("C2") <span style="font-size:x-small;">MXN</span></b></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<div id="EditarRegistroModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Registro</h5>
+        <button type="button" class="btn-close close" data-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" asp-page-handler="EditarRegistro">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+      <div class="modal-body">
+        <input type="hidden" asp-for="@Model.IdEntradaRegistro" />
+        <input type="hidden" asp-for="@Model.IdRegistro" />
+        <div class="form-floating mb-3">
+            <input asp-for="@Model.NombreRegistro" class="form-control" tabindex="1" />
+            <label asp-for="@Model.NombreRegistro"></label>
+            <span asp-validation-for="registro.Nombre" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="form-floating mb-3 col-md-6">
+                    <input asp-for="@Model.DiezmoRegistro" class="form-control" tabindex="2" />
+                    <label asp-for="@Model.DiezmoRegistro"></label>
+                    <span asp-validation-for="@Model.DiezmoRegistro" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3 col-md-6">
+                    <select asp-for="@Model.MonedaDiezmoRegistro" class="form-control" >
+                        <option value="MXN">MXN</option>
+                        <option value="USD">USD</option>
+                    </select>
+                    <label asp-for="@Model.MonedaDiezmoRegistro"></label>
+                    <span asp-validation-for="@Model.MonedaDiezmoRegistro" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="form-floating mb-3 col-md-6">
+                    <input asp-for="@Model.OfrendaRegistro" class="form-control" tabindex="3" />
+                    <label asp-for="@Model.OfrendaRegistro"></label>
+                    <span asp-validation-for="@Model.OfrendaRegistro" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3 col-md-6">
+                    <select asp-for="@Model.MonedaOfrendaRegistro" class="form-control" >
+                        <option value="MXN">MXN</option>
+                        <option value="USD">USD</option>
+                    </select>
+                    <label asp-for="@Model.MonedaOfrendaRegistro"></label>
+                    <span asp-validation-for="@Model.MonedaOfrendaRegistro" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <table style="width:100% !important;">
+            <tbody><tr>
+                <td style="width:58%;">
+                    <button type="button" onclick="EliminarRegistro($('#IdRegistro').val())" class="btn btn-danger"><i class="fa fa-trash-can"></i> Eliminar</button> </td>
+                <td>
+                    <button type="button" class="btn btn-secondary close" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Guardar</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="EditarOtroModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Otro</h5>
+        <button type="button" class="btn-close close" data-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" asp-page-handler="EditarOtro">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+      <div class="modal-body">
+        <input type="hidden" asp-for="@Model.IdOtro" />
+        <input type="hidden" asp-for="@Model.IdRegistroOtro" />
+        <div class="form-floating mb-3">
+                <input asp-for="ConceptoOtro" class="form-control" tabindex="4" />
+                <label asp-for="ConceptoOtro"></label>
+                <span asp-validation-for="ConceptoOtro" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="ImporteOtro" class="form-control" tabindex="5" />
+                        <label asp-for="ImporteOtro"></label>
+                        <span asp-validation-for="ImporteOtro" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <select asp-for="MonedaOtro" class="form-control" >
+                            <option value="MXN">MXN</option>
+                            <option value="USD">USD</option>
+                        </select>
+                        <label asp-for="MonedaOtro"></label>
+                        <span asp-validation-for="MonedaOtro" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+      </div>
+      <div class="modal-footer">
+        <table style="width:100% !important;">
+            <tbody><tr>
+                <td style="width:58%;">
+                    <button type="button" onclick="EliminarOtro($('#IdOtro').val())" class="btn btn-danger"><i class="fa fa-trash-can"></i> Eliminar</button> </td>
+                <td>
+                    <button type="button" class="btn btn-secondary close" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Guardar</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="RegistrarGastoModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Registrar gasto</h5>
+        <button type="button" class="btn-close close" data-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" asp-page-handler="RegistrarGasto">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+      <div class="modal-body">
+        <div class="form-floating mb-3">
+                <input asp-for="GastoConcepto" class="form-control" tabindex="1" />
+                <label asp-for="GastoConcepto"></label>
+                <span asp-validation-for="GastoConcepto" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="form-floating mb-3">
+                        <input asp-for="ImporteGasto" class="form-control" tabindex="2" />
+                        <label asp-for="ImporteGasto"></label>
+                        <span asp-validation-for="ImporteGasto" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+      </div>
+      <div class="modal-footer">
+        <table style="width:100% !important;">
+            <tbody><tr>
+                    <button type="button" class="btn btn-secondary close" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Guardar</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="EditarGastoModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar gasto</h5>
+        <button type="button" class="btn-close close" data-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" asp-page-handler="EditarGasto">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="GastoIdEditar" />
+      <div class="modal-body">
+        <div class="form-floating mb-3">
+                <input asp-for="GastoConceptoEditar" class="form-control" tabindex="1" />
+                <label asp-for="GastoConceptoEditar"></label>
+                <span asp-validation-for="GastoConceptoEditar" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="form-floating mb-3">
+                        <input asp-for="ImporteGastoEditar" class="form-control" tabindex="2" />
+                        <label asp-for="ImporteGastoEditar"></label>
+                        <span asp-validation-for="ImporteGastoEditar" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+      </div>
+      <div class="modal-footer">
+        <table style="width:100% !important;">
+            <tbody><tr>
+                <td style="width:58%;">
+                    <button type="button" onclick="EliminarGasto($('#GastoIdEditar').val())" class="btn btn-danger"><i class="fa fa-trash-can"></i> Eliminar</button> </td>
+                <td>
+                    <button type="button" class="btn btn-secondary close" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Guardar</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<form id="frmEliminarOtro" method="post" asp-page-handler="EliminarOtro">
+    <input type="hidden" asp-for="EliminarOtroId" />
+</form>
+
+<form id="frmEliminarRegistro" method="post" asp-page-handler="EliminarRegistro">
+    <input type="hidden" asp-for="EliminarRegistroId" />
+</form>
+
+<form id="frmEliminarGasto" method="post" asp-page-handler="EliminarGasto">
+    <input type="hidden" asp-for="GastoIdEliminar" />
+</form>
+

@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FinanzasVineyard</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FinanzasVineyard.styles.css" asp-append-version="true" />
+    <link href="~/css/fontawesome.css" rel="stylesheet">
+    <link href="~/css/brands.css" rel="stylesheet">
+    <link href="~/css/solid.css" rel="stylesheet">
+    <style>
+        body {
+            font-size: small;
+        }
+    </style>
+</head>
+<body>
+    
+    <div style="float: right;"> <button class="btn btn-dark" id="exportPDF"><i class="fa fa-receipt"></i> Guardar comprobante</button></div>
+
+    <div class="container" id="html2pdf" style="display: block; width: 90%; margin: auto;">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.8.0/html2pdf.bundle.min.js" integrity="sha512-w3u9q/DeneCSwUDjhiMNibTRh/1i/gScBVp2imNVAMCt6cUHIw6xzhzcPFIaL3Q1EbI2l+nu17q2aLJJLo4ZYg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        var opt = {
+            filename: 'comprobante-finanzas-'+(new Date().toISOString().split('T')[0])+'.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 4 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        let htmlPDF = document.getElementById("html2pdf");
+        let exportPDF = document.getElementById("exportPDF");
+        exportPDF.onclick = (e) => html2pdf(htmlPDF, opt);
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

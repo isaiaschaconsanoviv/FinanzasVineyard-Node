@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\Users\isaiaschacon\source\repos\FinanzasVineyard\bin\Release\net6.0\publish\</_PublishTargetUrl>
+    <History>True|2022-03-08T22:50:37.6756157Z;True|2022-02-17T11:29:59.0390123-08:00;</History>
+  </PropertyGroup>
+</Project>

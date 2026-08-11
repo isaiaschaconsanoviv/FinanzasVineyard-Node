@@ -1,0 +1,53 @@
+﻿@page
+@model FinanzasVineyard.Pages.Entrada.IndexModel
+@{
+    ViewData["Title"] = "Entradas";
+}
+
+<p>
+    <a class="btn btn-primary" asp-page="Create"><i class="fa fa-clipboard"></i> Nueva entrada</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Entrada[0].Fecha)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Entrada[0].TipoCambio)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Entrada) {
+        <tr>
+            <td>
+                @item.Fecha.DayOfWeek.ToString() <br>
+                @item.Fecha.Date.ToString("M"), @item.Fecha.Date.ToString("yyyy")
+            </td>
+            <td>
+                @item.TipoCambio.ToString("C2") MXN
+            </td>
+            <td>
+                @if (item.Fecha > new DateTime(2023, 1, 15))
+                {
+                    <a class="btn btn-dark" asp-page="./VerV2" asp-route-id="@item.Id"><i class="fa fa-eye"></i></a>
+                }
+                else
+                {
+                    <a class="btn btn-dark" asp-page="./Ver" asp-route-id="@item.Id"><i class="fa fa-eye"></i></a>
+                } |
+                @if(item.Fecha > new DateTime(2023, 1, 15)) {
+                    <a class="btn btn-dark" asp-page="./RegistrarV2" asp-route-id="@item.Id"><i class="fa fa-clipboard-list"></i></a>
+                }
+                else {
+                    <a class="btn btn-dark" asp-page="./Registrar" asp-route-id="@item.Id"><i class="fa fa-clipboard-list"></i></a>
+                } |
+                <a class="btn btn-dark" asp-page="./Edit" asp-route-id="@item.Id"><i class="fa fa-pencil"></i></a> |
+                <a class="btn btn-danger" asp-page="./Delete" asp-route-id="@item.Id"><i class="fa fa-trash-can"></i></a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

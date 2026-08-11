@@ -1,0 +1,41 @@
+﻿@page "{id:int}"
+@model FinanzasVineyard.Pages.Corte.RegistrarModel
+@{
+    ViewData["Title"] = "Registrar corte";
+    var FechaTitulo = Model.Corte.Fecha.ToString("D", Model.ci);
+}
+
+<a style="margin-right:15px;float:left;" class="btn btn-dark" asp-page="/Corte/Index"><i class="fa fa-chevron-left"></i></a>
+<h1>Corte | @FechaTitulo</h1>
+<br />
+
+<form method="post" asp-page-handler="OnPostAsync">
+<div class="content">
+    <div class="row">
+        <div class="col-10">&nbsp;</div>
+        <div class="col-2">
+            <button onclick="this.form.submit" class="btn btn-primary" tabindex="6" ><i class="fa fa-check-double"></i> Confirmar</button>
+        </div>
+        <div class="col-12">
+            <table class="table">
+                <thead>
+                    <th>Concepto</th>
+                    <th>Importe</th>
+                    <th>Diferencia</th>
+                </thead>
+                <tbody>
+                    @foreach(var item in Model.Registros) {
+                    <tr>
+                        <td>@item.Concepto</td>
+                        <td><input asp-for="@item.Importe" class="form-control" /></td>
+                        <td>
+                            <input id="diferencia-@item.Id" data-id="@item.Id" asp-for="@item.Diferencia" class="form-control" />
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+         </div>
+    </div>
+</div>
+</form>

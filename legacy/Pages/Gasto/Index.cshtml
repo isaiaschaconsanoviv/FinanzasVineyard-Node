@@ -1,0 +1,35 @@
+﻿@page
+@model FinanzasVineyard.Pages.Gasto.IndexModel
+@{
+    ViewData["Title"] = "Resumen de gastos";
+}
+
+<a style="margin-right:15px;float:left;" class="btn btn-dark" asp-page="/Entrada/Index"><i class="fa fa-chevron-left"></i></a> 
+<h1>Resumen de gastos</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-12">
+        <a class="btn btn-primary" href="/Gasto/Registrar"><i class="fa fa-receipt"></i> Registrar gasto</a>
+        <br /><br />
+        <table class="table">
+            <thead>
+                <th>@Html.DisplayNameFor(model => model.Gastos[0].Fecha)</th>
+                <th>@Html.DisplayNameFor(model => model.Gastos[0].Cuenta)</th>
+                <th>@Html.DisplayNameFor(model => model.Gastos[0].Concepto)</th>
+                <th>@Html.DisplayNameFor(model => model.Gastos[0].Importe)</th>
+            </thead>
+            <tbody>
+            @foreach(var gasto in Model.Gastos)
+            {
+                <tr>
+                    <td>@gasto.Fecha.ToString("dd/MM/yyyy")</td>
+                    <td>@gasto.Cuenta</td>
+                    <td>@gasto.Concepto</td>
+                    <td>@gasto.Importe.ToString("C2") MXN</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

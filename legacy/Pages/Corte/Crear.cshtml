@@ -1,0 +1,35 @@
+﻿@page
+@model FinanzasVineyard.Pages.Corte.CrearModel
+@{
+    ViewData["Title"] = "Nuevo Corte";
+}
+<a style="margin-right:15px;float:left;" class="btn btn-dark" asp-page="/Corte/Index"><i class="fa fa-chevron-left"></i></a>
+<h1>Nuevo Corte</h1>
+<hr />
+<br />
+
+<div class="content">
+    <div class="row">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Corte.Fecha" class="control-label"></label>
+                <input asp-for="Corte.Fecha" type="date" class="form-control" />
+                <span asp-validation-for="Corte.Fecha" class="text-danger"></span>
+            </div><br />
+            <div class="form-group">
+                <label asp-for="Corte.Notas" class="control-label"></label>
+                <textarea asp-for="Corte.Notas" type="text" class="form-control"></textarea>
+                <span asp-validation-for="Corte.Notas" class="text-danger"></span>
+            </div><br />
+            <div class="form-group">
+                <label asp-for="Corte.ElaboradoPor" class="control-label"></label>
+                <input asp-for="Corte.ElaboradoPor" type="text" class="form-control" />
+                <span asp-validation-for="Corte.ElaboradoPor" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <center><input type="submit" value="Guardar y continuar" class="btn btn-primary" /></center>
+            </div>
+        </form>
+    </div>
+</div>

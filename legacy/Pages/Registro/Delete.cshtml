@@ -1,0 +1,40 @@
+﻿@page
+@model FinanzasVineyard.Pages.Registro.DeleteModel
+
+<h3>Estas seguro(a) que deseeas eliminar el siguiente registro?</h3>
+<div>
+   
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Registro.Nombre)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Registro.Nombre)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Registro.Diezmo) 
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Registro.Diezmo) @Html.DisplayFor(model => model.Registro.MonedaDiezmo)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Registro.Ofrenda)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Registro.Ofrenda) @Html.DisplayFor(model => model.Registro.MonedaOfrenda)
+        </dd>
+    </dl>
+    
+    <form method="post">
+        <input type="hidden" asp-for="Registro.Id" />
+        <div class="row">
+            <div class="col-sm-6">
+                <a style="float:left;" class="btn btn-dark" asp-page="../Entrada/Registrar/" asp-route-id="@Model.Registro.IdEntrada"><i class="fa fa-chevron-left"></i></a>
+            </div>
+            <div class="col-sm-6">
+                <button style="float:right;" class="btn btn-danger" onclick="this.form.submit"><i class="fa fa-trash-can"></i> Eliminar</button>
+            </div>
+        </div>
+    </form>
+</div>

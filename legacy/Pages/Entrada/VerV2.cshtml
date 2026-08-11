@@ -1,0 +1,240 @@
+﻿@page "{id:int}"
+@using Microsoft.AspNetCore.Antiforgery
+@model FinanzasVineyard.Pages.Entrada.VerV2Model
+@inject IAntiforgery antiforgery
+@{
+    ViewData["Title"] = "Agregar un registro";
+    Layout = "_Reporte";
+    var token = antiforgery.GetAndStoreTokens(HttpContext).RequestToken;
+    var t10pdiezmo = Model.GetCalculoFinalDiezmo();
+    var t3pNacional = Model.GetCalculoFinalNacional();
+    var tparcialpastor = Model.GetCalculoParcialPastor();
+    var tpastor = Model.GetCalculoFinalPastor();
+    var t10pMisiones = Model.GetCalculoFinalMisiones();
+    var t5pEventos = Model.GetCalculoFinalEventos();
+    var ingreso = Model.GetCalculoFinalIngreso();
+    var fechaReporte = Model.entrada.Fecha.ToString("D", Model.ci);
+}
+
+<div id="PDFcontent">
+    <h1><a style="margin-right:15px;" class="btn btn-dark" asp-page="Index"><i class="fa fa-chevron-left"></i></a> @fechaReporte</h1>
+    <br />
+<div class="row">
+    <div class="col-md-12">        
+        <h4>Notas:</h4>
+        <p>
+            Elaborado por: @Model.entrada.ElaboradoPor <br />
+            Tasa de cambio: @Model.entrada.TipoCambio.ToString("C2") <span style="font-size:small">MXN</span><br />
+            <pre>@Model.entrada.Notas</pre>
+        </p>
+    </div>
+</div>
+
+<div class="row">
+        <div class="col-md-12" style="float:right;">
+            <h4>Totales finales</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Totales</th>
+                        <th style="text-align:right;">Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>10% Diezmo</td>
+                        <th style="text-align:right;">@t10pdiezmo MXN</th>
+                    </tr>
+                    <tr>
+                        <td>3% Viña Nacional</td>
+                        <th style="text-align:right;">@t3pNacional MXN</th>
+                    </tr>
+                    <tr>
+                        <td>Misiones</td>
+                        <th style="text-align:right;">@t10pMisiones MXN</th>
+                    </tr>
+                    <tr>
+                        <td>Eventos</td>
+                        <th style="text-align:right;">@t5pEventos MXN</th>
+                    </tr>
+                    <tr>
+                        <td>Pastor</td>
+                        <td style="text-align:right;">
+                            @tparcialpastor MXN
+                            @if(Model.apoyogasolina && Model.GetDarApoyoGasolina())
+                            {
+                            <br />
+
+        <i><i style="font-size:small">(gasolina)</i> + $250.00 MXN</i>
+                            }
+                            @if(Model.apoyocelular && Model.GetDarApoyoCelular())
+                            {
+                            <br />
+
+        <i><i style="font-size:small">(celular)</i> + $250.00 MXN</i>
+                            }
+                            <br /><b>@tpastor MXN</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><i style="font-size:large">Ingreso</i></th>
+                        <th style="text-align:right;"><i style="font-size:large">@ingreso MXN</i></th>
+                    </tr>
+                </tbody>
+            </table>
+
+        @if(Model.GetOtrosPorConcepto().Count > 0)
+        {
+            <br />
+            <h4>Otros</h4>
+            <table class="table">
+                <thead>
+                    <th>Concepto</th>
+                    <th style="text-align:center;">MXN</th>
+                    <th style="text-align:center;">USD</th>
+                </thead>
+                <tbody>
+            @foreach(var concepto in Model.GetOtrosPorConcepto())
+            {
+                <tr>
+                    <td>@concepto.Concepto</td>
+                    <td style="text-align:center;">
+                        @if (concepto.ImporteMxn > 0)
+                        {
+                            @concepto.ImporteMxn.ToString("C2")
+                                    
+                        }
+                        else
+                        {
+                            <right>-</right>
+                        }
+                    </td>
+                    <td style="text-align:center;">
+                        @if (concepto.ImporteUsd > 0)
+                        {
+                            @concepto.ImporteUsd.ToString("C2")
+                                    
+                        }
+                        else
+                        {
+                            <right>-</right>
+                        }
+                    </td>
+                </tr>
+            }
+                </tbody>
+            </table>
+        }
+
+    </div>
+</div>
+<br />
+    <h4>Gastos </h4>
+    <table class="table">
+        <thead>
+        <th>@Html.DisplayNameFor(model => model.gastos[0].Concepto)</th>
+        <th style="text-align:right;">@Html.DisplayNameFor(model => model.gastos[0].Importe)</th>
+        </thead>
+        <tbody>
+            @foreach(var gasto in Model.gastos)
+            {
+            <tr>
+                <td id="g-@gasto.Id-Concepto" data="@gasto.Concepto"> @gasto.Concepto</td>
+                <td id="g-@gasto.Id-Importe" data="@gasto.Importe" style="text-align:right;">
+                    @if (gasto.Importe > 0)
+                    {
+                    @gasto.Importe.ToString("C2")
+                    }
+                    else
+                    {
+                    <right>-</right>
+                    }
+                </td>
+            </tr>
+            }
+            @if(Model.gastos.Count == 0)
+            {
+            <tr>
+                <td colspan="2" style="font-size: small; text-align: center;">No hay gastos registrados por el momento</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    <br />
+<div class="row">
+    <div class="col-md-12">
+        <h4>Listado</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.registros[0].Nombre)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.registros[0].Diezmo)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.registros[0].Ofrenda)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.registros[0].Otros)
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @if(Model.registros.Count > 0)
+                {
+                    @foreach (var item in Model.registros) 
+                    {
+                    <tr>
+                        <td>
+                            <i class="fa fa-users"></i> &nbsp; @Html.DisplayFor(modelItem => item.Nombre)
+                        </td>
+                        <td>
+                            @item.Diezmo.ToString("C2") <span style="font-size:small;">@item.MonedaDiezmo</span>
+                                @if(item.MonedaDiezmo != "MXN")
+                                {
+                                    <br />
+                                    <span style="font-size:x-small;">(@Model.ShowConversionDiezmo(item.Id))</span>
+                                }
+                            </td>
+                        <td>
+                            @item.Ofrenda.ToString("C2") <span style="font-size:small;">@item.MonedaOfrenda</span>
+                            @if(item.MonedaOfrenda != "MXN")
+                                {
+                                    <br />
+                                    <span style="font-size:x-small;">(@Model.ShowConversionOfrenda(item.Id))</span>
+                                }
+                        </td>
+                        <td>
+                            <table>
+                                @foreach(var otro in Model.registros[Model.registros.IndexOf(item)].Otros)
+                                {
+                                    <tr>                                    
+                                        <td style="font-size:x-small;">
+                                            @Html.DisplayFor(modelItem => otro.Tipo)
+                                        </td>
+                                        <td style="font-size:x-small;">
+                                            @otro.Importe.ToString("C2") <span style="font-size:x-small;">@Html.DisplayFor(modelItem => otro.Moneda)</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                            @*<button onclick="AgregarOtro(this)" name="addotro-@Model.registros[Model.registros.IndexOf(item)].Id" data-idotro="@Model.registros[Model.registros.IndexOf(item)].Id" class="btn btn-sm btn-dark"><i class="fa fa-plus"></i></button>*@
+                        </td>
+                    </tr>
+                    }
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td align="right">&nbsp;</td>
+                    <td ><b>@Model.GetTotalDiezmos().ToString("C2") <span style="font-size:x-small;">MXN</span></b></td>
+                    <td ><b>@Model.GetTotalOfrendas().ToString("C2") <span style="font-size:x-small;">MXN</span></b></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+</div>

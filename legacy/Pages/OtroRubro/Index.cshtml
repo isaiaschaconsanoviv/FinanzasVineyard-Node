@@ -1,0 +1,48 @@
+﻿@page
+@model FinanzasVineyard.Pages.OtroRubro.IndexModel
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.OtroRubro[0].IdRegistro)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OtroRubro[0].Tipo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OtroRubro[0].Importe)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OtroRubro[0].Moneda)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.OtroRubro) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdRegistro)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tipo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Importe)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Moneda)
+            </td>
+            <td>
+                <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

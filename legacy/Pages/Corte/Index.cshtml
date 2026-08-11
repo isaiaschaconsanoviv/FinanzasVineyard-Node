@@ -1,0 +1,47 @@
+﻿@page
+@model FinanzasVineyard.Pages.Corte.IndexModel
+@{
+    ViewData["Title"] = "Cortes";
+}
+
+<p>
+    <a class="btn btn-primary" asp-page="Crear"><i class="fa fa-clipboard"></i> Nuevo corte</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Cortes[0].Fecha)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Cortes[0].Notas)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Cortes[0].ElaboradoPor)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Cortes) {
+        <tr>
+            <td>
+                @item.Fecha.DayOfWeek.ToString() <br>
+                @item.Fecha.Date.ToString("M"), @item.Fecha.Date.ToString("yyyy")
+            </td>
+            <td>
+                @item.Notas
+            </td>
+            <td>
+                @item.ElaboradoPor
+            </td>
+            <td>
+                <a class="btn btn-dark" asp-page="./Ver" asp-route-id="@item.Id"><i class="fa fa-eye"></i></a> |
+                <a class="btn btn-dark" asp-page="./Registrar" asp-route-id="@item.Id"><i class="fa fa-clipboard-list"></i></a> |
+                <a class="btn btn-dark" asp-page="./Edit" asp-route-id="@item.Id"><i class="fa fa-pencil"></i></a> |
+                <a class="btn btn-danger" asp-page="./Delete" asp-route-id="@item.Id"><i class="fa fa-trash-can"></i></a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

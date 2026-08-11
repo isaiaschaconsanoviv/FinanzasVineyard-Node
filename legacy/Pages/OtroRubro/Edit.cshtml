@@ -1,0 +1,44 @@
+﻿@page
+@model FinanzasVineyard.Pages.OtroRubro.EditModel
+
+<h4>OtroRubro</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="OtroRubro.Id" />
+            <div class="form-group">
+                <label asp-for="OtroRubro.IdRegistro" class="control-label"></label>
+                <input asp-for="OtroRubro.IdRegistro" class="form-control" />
+                <span asp-validation-for="OtroRubro.IdRegistro" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OtroRubro.Tipo" class="control-label"></label>
+                <input asp-for="OtroRubro.Tipo" class="form-control" />
+                <span asp-validation-for="OtroRubro.Tipo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OtroRubro.Importe" class="control-label"></label>
+                <input asp-for="OtroRubro.Importe" class="form-control" />
+                <span asp-validation-for="OtroRubro.Importe" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OtroRubro.Moneda" class="control-label"></label>
+                <input asp-for="OtroRubro.Moneda" class="form-control" />
+                <span asp-validation-for="OtroRubro.Moneda" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

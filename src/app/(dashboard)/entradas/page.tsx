@@ -16,7 +16,7 @@ export default async function EntradasPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div className="page-header">
         <h1 className="text-3xl font-bold">Historial de Entradas</h1>
         <Link href="/entradas/nuevo" className="btn btn-primary" style={{ gap: '0.5rem' }}>
           <Plus size={18} />

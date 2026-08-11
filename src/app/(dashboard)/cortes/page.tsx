@@ -14,7 +14,7 @@ export default async function CortesPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div className="page-header">
         <div>
           <h1 className="text-3xl font-bold">Historial de Cortes de Caja</h1>
           <p className="text-gray-400 mt-2">Periodos contabilizados y verificados</p>

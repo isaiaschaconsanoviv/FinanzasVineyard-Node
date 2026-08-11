@@ -5,20 +5,20 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Select } from "@/components/ui/Select";
 
-export default function NuevoUsuarioPage() {
+export default function EditUserForm({ usuario }: { usuario: any }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const [formData, setFormData] = useState({
-    nombre: "",
-    correo: "",
-    usuario: "",
+    nombre: usuario.nombre || "",
+    correo: usuario.correo || "",
+    usuario: usuario.usuario || "",
     password: "",
     confirmPassword: "",
-    rol: "READONLY",
-    activo: true,
+    rol: usuario.rol || "READONLY",
+    activo: usuario.activo,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -37,21 +37,22 @@ export default function NuevoUsuarioPage() {
     setError("");
     setSuccess("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
+    if (formData.password || formData.confirmPassword) {
+      if (formData.password !== formData.confirmPassword) {
+        setError("Las contraseñas no coinciden");
+        return;
+      }
+      if (formData.password.length < 6) {
+        setError("La contraseña debe tener al menos 6 caracteres");
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch("/api/usuarios", {
-        method: "POST",
+      const res = await fetch(`/api/usuarios/${usuario.id}`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -68,24 +69,18 @@ export default function NuevoUsuarioPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Ocurrió un error al crear el usuario");
+        throw new Error(data.error || "Ocurrió un error al actualizar el usuario");
       }
 
-      setSuccess("Usuario creado exitosamente");
-      setFormData({
-        nombre: "",
-        correo: "",
-        usuario: "",
-        password: "",
-        confirmPassword: "",
-        rol: "READONLY",
-        activo: true,
-      });
+      setSuccess("Usuario actualizado exitosamente");
       
-      // Opcional: Redirigir al listado después de unos segundos
+      // Limpiar campos de contraseña por seguridad
+      setFormData(prev => ({ ...prev, password: "", confirmPassword: "" }));
+
       setTimeout(() => {
-        router.push("/usuarios"); // Asumiendo que existirá un listado de usuarios
-      }, 2000);
+        router.push("/usuarios");
+        router.refresh();
+      }, 1500);
 
     } catch (err: any) {
       setError(err.message);
@@ -97,7 +92,7 @@ export default function NuevoUsuarioPage() {
   return (
     <div className="animate-fade-in max-w-2xl mx-auto">
       <div className="page-header">
-        <h1 className="text-3xl font-bold">Crear Nuevo Usuario</h1>
+        <h1 className="text-3xl font-bold">Editar Usuario</h1>
         <Link href="/usuarios" className="btn btn-secondary">
           Volver
         </Link>
@@ -174,7 +169,7 @@ export default function NuevoUsuarioPage() {
             </div>
 
             <div className="input-group">
-              <label htmlFor="password">Contraseña *</label>
+              <label htmlFor="password">Nueva Contraseña (Opcional)</label>
               <input
                 id="password"
                 name="password"
@@ -182,12 +177,12 @@ export default function NuevoUsuarioPage() {
                 className="input-field"
                 value={formData.password}
                 onChange={handleChange}
-                required
+                placeholder="Déjalo en blanco para no cambiarla"
               />
             </div>
 
             <div className="input-group">
-              <label htmlFor="confirmPassword">Confirmar Contraseña *</label>
+              <label htmlFor="confirmPassword">Confirmar Nueva Contraseña</label>
               <input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -195,31 +190,35 @@ export default function NuevoUsuarioPage() {
                 className="input-field"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                required
+                placeholder="Repite la nueva contraseña"
               />
             </div>
-
           </div>
 
-          <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.75rem', marginTop: '1rem', marginBottom: '1.5rem' }}>
-            <input
-              id="activo"
-              name="activo"
-              type="checkbox"
-              checked={formData.activo}
-              onChange={handleChange}
-              style={{ width: '1.25rem', height: '1.25rem', accentColor: 'var(--accent-primary)' }}
-            />
-            <label htmlFor="activo" style={{ margin: 0, cursor: 'pointer', fontSize: '1rem' }}>
-              Usuario Activo (Puede iniciar sesión)
+          <div className="input-group mt-6">
+            <label className="flex items-center gap-3 cursor-pointer" style={{ userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                name="activo"
+                checked={formData.activo}
+                onChange={handleChange}
+                style={{ width: '20px', height: '20px', accentColor: 'var(--accent-primary)' }}
+              />
+              <div>
+                <span className="font-medium text-lg">Usuario Activo</span>
+                <p className="text-sm text-gray-400">Si desmarcas esta opción, el usuario no podrá iniciar sesión en el sistema.</p>
+              </div>
             </label>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding: '0.75rem 2rem' }}>
-              {loading ? "Creando..." : "Crear Usuario"}
-            </button>
-          </div>
+          <button 
+            type="submit" 
+            className="btn btn-primary w-full mt-8" 
+            disabled={loading}
+            style={{ padding: '1rem', fontSize: '1.1rem' }}
+          >
+            {loading ? "Actualizando..." : "Guardar Cambios"}
+          </button>
         </form>
       </div>
     </div>

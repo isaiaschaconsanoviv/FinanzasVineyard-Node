@@ -15,7 +15,7 @@ export default async function UsuariosPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div className="page-header">
         <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
         {session?.user && (session.user as any).rol === "ADMIN" && (
           <Link href="/usuarios/nuevo" className="btn btn-primary" style={{ gap: '0.5rem' }}>
@@ -34,6 +34,7 @@ export default async function UsuariosPage() {
               <th>Rol</th>
               <th>Estado</th>
               <th>Último Acceso</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -56,11 +57,18 @@ export default async function UsuariosPage() {
                 <td style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                   {new Date(user.lastLogin).toLocaleDateString()}
                 </td>
+                <td style={{ textAlign: 'right' }}>
+                  {session?.user && (session.user as any).rol === "ADMIN" && (
+                    <Link href={`/usuarios/${user.id}/editar`} className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>
+                      Editar
+                    </Link>
+                  )}
+                </td>
               </tr>
             ))}
             {usuarios.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                   No hay usuarios registrados
                 </td>
               </tr>

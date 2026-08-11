@@ -315,16 +315,16 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
 
   return (
     <div className="animate-fade-in pb-12">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Link href="/entradas" className="btn btn-dark" style={{ marginRight: '1.5rem', padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+      <div className="page-header" style={{ marginBottom: '2rem', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <Link href="/entradas" className="btn btn-dark" style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
             <ChevronLeft size={24} />
           </Link>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <h1 className="text-3xl font-bold" style={{ textTransform: 'capitalize' }}>
+            <h1 className="text-3xl font-bold" style={{ textTransform: 'capitalize', lineHeight: '1.2' }}>
               {new Date(entrada.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', color: 'var(--text-secondary)' }}>
               Tipo de Cambio:
               {isEditingTc ? (
                 <input 
@@ -347,7 +347,7 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="header-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           <button onClick={handleShareWhatsApp} className="btn btn-secondary" style={{ gap: '0.5rem', backgroundColor: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', borderColor: 'rgba(34, 197, 94, 0.3)' }}>
             <Share2 size={18} />
             Compartir
@@ -359,7 +359,7 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+      <div className="responsive-detail-grid">
         
         {/* Lado Izquierdo: Formulario y Tabla */}
         <div>
@@ -378,7 +378,7 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
               <input type="text" id="nombre-input" name="nombre" list="nombres-list" value={formData.nombre} onChange={handleChange} className="input-field" required autoFocus />
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="mb-4">
+            <div className="responsive-grid mb-4">
               <div className="input-group">
                 <label>Diezmo</label>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -439,7 +439,7 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
               </div>
 
               {otros.map((otro) => (
-                <div key={otro.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 90px 40px', gap: '0.5rem', marginBottom: '0.75rem', alignItems: 'center' }}>
+                <div key={otro.id} className="otros-rubros-grid">
                   <input 
                     type="text" 
                     list="conceptos-list"

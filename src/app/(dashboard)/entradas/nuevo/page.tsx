@@ -97,7 +97,7 @@ export default function NuevaEntradaPage() {
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div className="page-header">
         <h1 className="text-3xl font-bold">Crear Nueva Entrada</h1>
         <Link href="/entradas" className="btn btn-secondary">
           Cancelar

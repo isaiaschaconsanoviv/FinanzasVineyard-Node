@@ -100,7 +100,7 @@ export default function NuevoCortePage() {
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: '900px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div className="page-header">
         <div>
           <h1 className="text-3xl font-bold">Realizar Corte de Caja</h1>
           <p className="text-gray-400 mt-2">Punto de conciliación para establecer saldos reales.</p>

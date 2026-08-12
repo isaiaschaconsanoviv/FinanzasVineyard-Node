@@ -24,11 +24,8 @@ async function getDashboardStats() {
     
     let gastosMes = gastos.reduce((sum, g) => sum + g.importe, 0);
 
-    // 3. Balance General
+    // 3. Filtrar solo las cuentas oficiales de distribucion (no otros rubros, ni pastor)
     const saldos = await calcularSaldosActuales(prisma);
-    let balanceGeneral = Object.values(saldos).reduce((sum, val) => sum + val, 0);
-
-    // 4. Filtrar solo las cuentas oficiales de distribucion (no otros rubros, ni pastor)
     const reglas = await prisma.reglaDistribucion.findMany();
     
     const cuentasAExcluir = ["Ingreso", "Pastor", "Aguinaldo Pastor", "Apoyo gasolina", "Apoyo celular", "Bono Pastor Domingo", "Bono Pastor Ultimo Domingo"];
@@ -40,6 +37,9 @@ async function getDashboardStats() {
         saldosFiltrados[key] = saldos[key];
       }
     }
+
+    // 4. Balance General (Suma de los rubros principales)
+    let balanceGeneral = Object.values(saldosFiltrados).reduce((sum, val) => sum + val, 0);
 
     return {
       entradasMes,

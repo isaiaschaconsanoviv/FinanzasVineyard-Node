@@ -172,17 +172,20 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(0, 0, 0, 0.7)',
       backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      display: 'flex', 
+      alignItems: 'flex-start', 
+      justifyContent: 'center',
       zIndex: 1000,
+      overflowY: 'auto',
+      padding: '2rem 1rem',
       animation: 'fadeIn 0.2s ease-out'
     }}>
       <div className="glass-panel" style={{
-        width: '90%', maxWidth: '600px',
+        width: '100%', maxWidth: '600px',
         padding: '2rem',
         animation: 'slideUp 0.3s ease-out',
         position: 'relative',
-        maxHeight: '90vh',
-        overflowY: 'auto'
+        margin: 'auto'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 className="text-2xl font-bold">{usuarioInicial ? "Editar Usuario" : "Crear Nuevo Usuario"}</h2>

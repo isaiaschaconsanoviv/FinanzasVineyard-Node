@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FinanzasVineyard-Node
 
-## Getting Started
+Sistema integral de gestión financiera para la iglesia, reescrito desde cero utilizando tecnologías web modernas para ofrecer una experiencia rápida, estética y responsiva.
 
-First, run the development server:
+## 🚀 Características Principales
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dashboard Financiero:** Tarjetas de resumen en tiempo real para el Balance General, Entradas y Gastos.
+- **Distribución Automatizada:** Lógica de negocio integrada para la distribución automática de fondos (Diezmos, Viña Nacional, Pastor, Misiones, Eventos, Fondo General).
+- **Gestión de Usuarios:** Módulo de administración para crear, editar y deshabilitar usuarios con control de roles (Ej. `ADMIN`).
+- **Autenticación Segura:** Sistema de login mediante credenciales encriptadas (Bcrypt + NextAuth).
+- **Tipo de Cambio (USD a MXN):** Integración con la API de *Frankfurter* para obtener el tipo de cambio al día y graficar el histórico de las últimas 4 semanas.
+- **Gestión de Comprobantes:** Integración con *Cloudinary* para almacenar y administrar de manera segura las imágenes de los recibos y comprobantes.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠 Stack Tecnológico
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** [Next.js 14+](https://nextjs.org/) (App Router)
+- **Base de Datos:** [MongoDB](https://www.mongodb.com/)
+- **ORM:** [Prisma](https://www.prisma.io/)
+- **Autenticación:** [NextAuth.js](https://next-auth.js.org/)
+- **Estilos:** Vanilla CSS (Diseño Premium Dark Mode + *Glassmorphism*)
+- **Iconos y Gráficas:** `lucide-react` y `recharts`
+- **Almacenamiento de Imágenes:** [Cloudinary](https://cloudinary.com/)
+- **Despliegue:** [Vercel](https://vercel.com/)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 💻 Entorno de Desarrollo (Local)
 
-## Learn More
+Sigue estos pasos para correr el proyecto en tu máquina local:
 
-To learn more about Next.js, take a look at the following resources:
+1. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Configurar las variables de entorno:**
+   Crea un archivo `.env` en la raíz del proyecto basado en las necesidades del sistema:
+   ```env
+   DATABASE_URL="mongodb+srv://<usuario>:<password>@cluster.mongodb.net/FinanzasVineyard"
+   NEXTAUTH_SECRET="tu_secreto_aqui"
+   NEXTAUTH_URL="http://localhost:3000"
+   
+   # Cloudinary Config
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="tu_cloud_name"
+   CLOUDINARY_API_KEY="tu_api_key"
+   CLOUDINARY_API_SECRET="tu_api_secret"
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Sincronizar Prisma:**
+   ```bash
+   npx prisma generate
+   ```
 
-## Deploy on Vercel
+4. **Iniciar el servidor de desarrollo:**
+   ```bash
+   npm run dev
+   ```
+   Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📖 Documentación Interna
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Para consultar el historial detallado de cambios, decisiones de arquitectura y módulos implementados fase por fase, por favor revisa la bitácora viva del proyecto:
+
+- [Contexto y Bitácora del Proyecto](documentacion/contexto.md)

@@ -32,7 +32,7 @@ export async function PATCH(
       if (password.length < 6) {
         return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 });
       }
-      dataToUpdate.passwordHash = await bcrypt.hash(password, 10);
+      dataToUpdate.password = await bcrypt.hash(password, 10);
     }
 
     const updatedUser = await prisma.usuario.update({
@@ -47,5 +47,30 @@ export async function PATCH(
       return NextResponse.json({ error: "El nombre de usuario ya existe" }, { status: 400 });
     }
     return NextResponse.json({ error: "Error al actualizar usuario" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || (session.user as any).rol !== "ADMIN") {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const params = await props.params;
+
+    // TODO: Verify if user has entries or dependencies before deleting if necessary,
+    // although cascading deletes usually handle this in prisma schema.
+    await prisma.usuario.delete({
+      where: { id: params.id }
+    });
+
+    return NextResponse.json({ message: "Usuario eliminado exitosamente" });
+  } catch (error: any) {
+    console.error("Error al eliminar usuario:", error);
+    return NextResponse.json({ error: "Error al eliminar usuario" }, { status: 500 });
   }
 }

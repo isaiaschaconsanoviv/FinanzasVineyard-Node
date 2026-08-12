@@ -389,4 +389,4 @@ input[type="number"] {
 
 .text-danger { color: var(--danger) !important; }
 .text-success { color: var(--success) !important; }
-
+.text-purple { color: var(--accent-primary) !important; }

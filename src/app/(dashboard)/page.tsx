@@ -137,7 +137,7 @@ export default async function DashboardPage() {
 
         <div className="glass-panel p-8">
           <h3 className="text-gray-400 mb-2">Balance General Total</h3>
-          <p className="text-3xl font-bold text-white">{formatCurrency(stats.balanceGeneral)}</p>
+          <p className="text-3xl font-bold text-purple">{formatCurrency(stats.balanceGeneral)}</p>
         </div>
       </div>
 

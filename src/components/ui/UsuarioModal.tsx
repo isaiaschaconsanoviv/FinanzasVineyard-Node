@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Key, Eye, EyeOff, Trash2 } from "lucide-react";
 import { Select } from "./Select";
 import { ConfirmModal } from "./ConfirmModal";
@@ -31,7 +32,10 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
     activo: true,
   });
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     if (isOpen) {
       setError("");
       setSuccess("");
@@ -61,7 +65,7 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
     }
   }, [isOpen, usuarioInicial]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -381,6 +385,7 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
         cancelText="Cancelar"
         isDanger={true}
       />
-    </div>
+    </div>,
+    document.body
   );
 }

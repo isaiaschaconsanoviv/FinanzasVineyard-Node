@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Select } from "@/components/ui/Select";
+import { Key } from "lucide-react";
 
 export default function NuevoUsuarioPage() {
   const router = useRouter();
@@ -30,6 +31,15 @@ export default function NuevoUsuarioPage() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const generateSecurePassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let pwd = "";
+    for (let i = 0; i < 12; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setFormData(prev => ({ ...prev, password: pwd, confirmPassword: pwd }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -174,7 +184,18 @@ export default function NuevoUsuarioPage() {
             </div>
 
             <div className="input-group">
-              <label htmlFor="password">Contraseña *</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label htmlFor="password" style={{ marginBottom: 0 }}>Contraseña *</label>
+                <button 
+                  type="button" 
+                  onClick={generateSecurePassword}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', display: 'flex', gap: '0.25rem', alignItems: 'center', margin: 0 }}
+                  title="Generar contraseña de 12 caracteres"
+                >
+                  <Key size={14} /> Generar Segura
+                </button>
+              </div>
               <input
                 id="password"
                 name="password"

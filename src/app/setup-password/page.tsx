@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
-export default function SetupPasswordPage() {
+function SetupPasswordForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -184,5 +184,17 @@ export default function SetupPasswordPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SetupPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#111827' }}>
+        <p style={{ color: 'white' }}>Cargando...</p>
+      </div>
+    }>
+      <SetupPasswordForm />
+    </Suspense>
   );
 }

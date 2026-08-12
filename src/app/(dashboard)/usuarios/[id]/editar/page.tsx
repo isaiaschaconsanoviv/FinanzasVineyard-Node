@@ -23,7 +23,7 @@ export default async function EditUserPage(props: { params: Promise<{ id: string
   }
 
   // Remove the passwordHash before passing to client component
-  const { passwordHash, ...safeUser } = usuario;
+  const { password, ...safeUser } = usuario;
 
   // Convert dates and parse strictly for Client Component
   const serializableUser = JSON.parse(JSON.stringify(safeUser));

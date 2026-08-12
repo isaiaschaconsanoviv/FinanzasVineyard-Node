@@ -16,6 +16,8 @@ model Usuario {
   rol       String   @default("READONLY")
   activo    Boolean  @default(true)
   lastLogin DateTime @default(now())
+  resetToken       String?
+  resetTokenExpiry DateTime?
 }
 
 model Entrada {

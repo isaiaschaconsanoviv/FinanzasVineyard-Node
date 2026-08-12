@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import Image from "next/image";
 import { LayoutDashboard, Wallet, Receipt, Users, LogOut, Calculator, Settings, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import "../../app/responsive.css";
+import { ConfirmModal } from "../ui/ConfirmModal";
 
 export function Sidebar({ userName }: { userName: string }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const pathname = usePathname();
 
   const closeMenu = () => setIsOpen(false);
@@ -71,12 +74,27 @@ export function Sidebar({ userName }: { userName: string }) {
           </Link>
         </nav>
         <div className="sidebar-footer">
-          <Link href="/api/auth/signout" className="nav-link text-danger">
+          <button 
+            onClick={() => setIsLogoutModalOpen(true)} 
+            className="nav-link text-danger" 
+            style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}
+          >
             <LogOut size={18} />
             <span>Cerrar Sesión</span>
-          </Link>
+          </button>
         </div>
       </aside>
+
+      <ConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => signOut({ callbackUrl: '/login' })}
+        title="Cerrar Sesión"
+        message="¿Estás seguro de que deseas salir de Finanzas Vineyard?"
+        confirmText="Sí, salir"
+        cancelText="Cancelar"
+        isDanger={true}
+      />
     </>
   );
 }

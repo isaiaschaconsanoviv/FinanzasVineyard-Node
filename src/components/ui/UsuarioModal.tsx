@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Key, Eye, EyeOff, Trash2 } from "lucide-react";
+import { X, Key, Eye, EyeOff, Trash2, Mail, RefreshCw } from "lucide-react";
 import { Select } from "./Select";
 import { ConfirmModal } from "./ConfirmModal";
 
@@ -16,6 +16,7 @@ interface UsuarioModalProps {
 export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: UsuarioModalProps) {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [emailActionLoading, setEmailActionLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -92,7 +93,15 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
     setError("");
     setSuccess("");
 
-    if (!usuarioInicial || formData.password || formData.confirmPassword) {
+    const isPasswordProvided = formData.password || formData.confirmPassword;
+    const isPasswordRequired = !usuarioInicial && !formData.correo;
+
+    if (isPasswordRequired && !isPasswordProvided) {
+      setError("Debes proporcionar una contraseña o un correo electrónico");
+      return;
+    }
+
+    if (isPasswordProvided) {
       if (formData.password !== formData.confirmPassword) {
         setError("Las contraseñas no coinciden");
         return;
@@ -168,6 +177,29 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
     } catch (err: any) {
       setError(err.message);
       setDeleting(false);
+    }
+  };
+
+  const handleEmailAction = async (action: 'reenviar-bienvenida' | 'reset-password') => {
+    if (!usuarioInicial) return;
+    
+    setEmailActionLoading(true);
+    setError("");
+    setSuccess("");
+    
+    try {
+      const res = await fetch(`/api/usuarios/${usuarioInicial.id}/${action}`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || "Error al realizar la acción de correo");
+      
+      setSuccess(data.message);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setEmailActionLoading(false);
     }
   };
 
@@ -269,8 +301,8 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
 
             <div className="input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label htmlFor="password" style={{ marginBottom: 0 }}>
-                  {usuarioInicial ? "Nueva Contraseña" : "Contraseña *"}
+                <label htmlFor="password" style={{ margin: 0 }}>
+                  {usuarioInicial ? "Nueva Contraseña" : "Contraseña"} {!usuarioInicial && !formData.correo && "*"}
                 </label>
                 <button 
                   type="button" 
@@ -291,8 +323,7 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
                   style={{ paddingRight: '2.5rem' }}
                   value={formData.password}
                   onChange={handleChange}
-                  required={!usuarioInicial}
-                  placeholder={usuarioInicial ? "Déjalo en blanco para no cambiarla" : ""}
+                  placeholder={usuarioInicial ? "Déjalo en blanco para no cambiarla" : (formData.correo ? "Opcional. Se enviará link por correo." : "")}
                 />
                 <button 
                   type="button" 
@@ -306,7 +337,7 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
 
             <div className="input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label htmlFor="confirmPassword">
-                {usuarioInicial ? "Confirmar Nueva" : "Confirmar Contraseña *"}
+                {usuarioInicial ? "Confirmar Nueva" : "Confirmar Contraseña"} {!usuarioInicial && !formData.correo && "*"}
               </label>
               <div style={{ position: 'relative', marginTop: 'auto' }}>
                 <input
@@ -317,8 +348,7 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
                   style={{ paddingRight: '2.5rem' }}
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  required={!usuarioInicial}
-                  placeholder={usuarioInicial ? "Repite la nueva contraseña" : ""}
+                  placeholder={usuarioInicial ? "Repite la nueva contraseña" : (formData.correo ? "Opcional" : "")}
                 />
                 <button 
                   type="button" 
@@ -347,6 +377,34 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
             </label>
           </div>
 
+          {usuarioInicial && (
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', margin: 0 }}>Acciones de Correo</h3>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => handleEmailAction('reenviar-bienvenida')}
+                  disabled={loading || deleting || emailActionLoading}
+                  style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+                >
+                  <Mail size={16} />
+                  Reenviar Bienvenida
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => handleEmailAction('reset-password')}
+                  disabled={loading || deleting || emailActionLoading}
+                  style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+                >
+                  <RefreshCw size={16} />
+                  Resetear Contraseña
+                </button>
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem' }}>
             {usuarioInicial ? (
               <button 
@@ -364,10 +422,10 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
             )}
 
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button type="button" className="btn btn-dark" onClick={onClose} disabled={loading || deleting}>
+              <button type="button" className="btn btn-dark" onClick={onClose} disabled={loading || deleting || emailActionLoading}>
                 Cancelar
               </button>
-              <button type="submit" className="btn btn-primary" disabled={loading || deleting}>
+              <button type="submit" className="btn btn-primary" disabled={loading || deleting || emailActionLoading}>
                 {loading ? "Guardando..." : "Guardar Cambios"}
               </button>
             </div>

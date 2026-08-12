@@ -3,6 +3,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { enviarCorreo } from "@/lib/email";
+import WelcomeEmail from "@/emails/WelcomeEmail";
+import * as React from "react";
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -42,8 +46,12 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { nombre, correo, usuario, password, rol, activo } = body;
 
-    if (!usuario || !password || !rol) {
-      return NextResponse.json({ error: "Faltan datos obligatorios (Usuario, Contraseña y Rol)" }, { status: 400 });
+    if (!usuario || !rol) {
+      return NextResponse.json({ error: "Faltan datos obligatorios (Usuario y Rol)" }, { status: 400 });
+    }
+    
+    if (!password && !correo) {
+      return NextResponse.json({ error: "Debes proporcionar una contraseña o un correo electrónico para que el usuario pueda configurarla." }, { status: 400 });
     }
 
     // Check if user exists
@@ -61,7 +69,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "El nombre de usuario o el correo electrónico ya están registrados." }, { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    let hashedPassword = "";
+    let resetToken = null;
+    let resetTokenExpiry = null;
+    
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    } else {
+      // Si no hay contraseña, generamos una basura aleatoria para cumplir con la BD 
+      // y creamos el token para que el usuario ponga la real.
+      hashedPassword = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
+    }
+    
+    if (correo) {
+      resetToken = crypto.randomBytes(32).toString("hex");
+      resetTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    }
 
     const newUser = await prisma.usuario.create({
       data: {
@@ -71,8 +94,26 @@ export async function POST(req: Request) {
         password: hashedPassword,
         rol,
         activo: activo === undefined ? true : activo,
+        resetToken,
+        resetTokenExpiry,
       }
     });
+
+    if (correo && resetToken) {
+      // Send welcome email in background
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://finanzas-vineyard.vercel.app";
+      const setupLink = `${appUrl}/setup-password?token=${resetToken}`;
+      
+      enviarCorreo({
+        to: correo,
+        subject: "Bienvenido a Finanzas Vineyard",
+        react: React.createElement(WelcomeEmail, {
+          nombre: nombre || "",
+          usuario: usuario,
+          setupLink,
+        }),
+      });
+    }
 
     return NextResponse.json({ message: "Usuario creado exitosamente", id: newUser.id }, { status: 201 });
   } catch (error: any) {

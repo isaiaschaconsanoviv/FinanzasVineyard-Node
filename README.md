@@ -10,6 +10,7 @@ Sistema integral de gestión financiera para la iglesia, reescrito desde cero ut
 - **Autenticación Segura:** Sistema de login mediante credenciales encriptadas (Bcrypt + NextAuth).
 - **Tipo de Cambio (USD a MXN):** Integración con la API de *Frankfurter* para obtener el tipo de cambio al día y graficar el histórico de las últimas 4 semanas.
 - **Gestión de Comprobantes:** Integración con *Cloudinary* para almacenar y administrar de manera segura las imágenes de los recibos y comprobantes.
+- **Sistema de Correos y Links Mágicos:** Envío de correos transaccionales automatizado vía `Nodemailer` + Gmail. Los administradores pueden invitar usuarios enviando "Links Mágicos" que permiten al usuario configurar su propia contraseña, y los usuarios pueden solicitar la recuperación de su cuenta directamente desde el Login.
 
 ## 🛠 Stack Tecnológico
 
@@ -19,6 +20,7 @@ Sistema integral de gestión financiera para la iglesia, reescrito desde cero ut
 - **Autenticación:** [NextAuth.js](https://next-auth.js.org/)
 - **Estilos:** Vanilla CSS (Diseño Premium Dark Mode + *Glassmorphism*)
 - **Iconos y Gráficas:** `lucide-react` y `recharts`
+- **Correos:** `nodemailer` y `@react-email/components`
 - **Almacenamiento de Imágenes:** [Cloudinary](https://cloudinary.com/)
 - **Despliegue:** [Vercel](https://vercel.com/)
 
@@ -36,12 +38,16 @@ Sigue estos pasos para correr el proyecto en tu máquina local:
    ```env
    DATABASE_URL="mongodb+srv://<usuario>:<password>@cluster.mongodb.net/FinanzasVineyard"
    NEXTAUTH_SECRET="tu_secreto_aqui"
-   NEXTAUTH_URL="http://localhost:3000"
+   NEXT_PUBLIC_APP_URL="http://localhost:3000"
    
    # Cloudinary Config
    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="tu_cloud_name"
    CLOUDINARY_API_KEY="tu_api_key"
    CLOUDINARY_API_SECRET="tu_api_secret"
+
+   # SMTP / Nodemailer Config (Gmail)
+   SMTP_USER="tu-correo@gmail.com"
+   SMTP_PASS="xxxx xxxx xxxx xxxx"
    ```
 
 3. **Sincronizar Prisma:**

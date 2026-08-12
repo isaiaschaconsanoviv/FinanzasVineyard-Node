@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [usuario, setUsuario] = useState("");
@@ -69,6 +70,12 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.5rem' }}>
+            <Link href="/forgot-password" style={{ color: 'var(--accent-primary)', fontSize: '0.875rem', textDecoration: 'none' }}>
+              ¿Olvidaste tu contraseña?
+            </Link>
           </div>
 
           <button type="submit" className="btn btn-primary mt-4 py-3 w-full">

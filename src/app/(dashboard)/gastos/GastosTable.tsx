@@ -1,14 +1,15 @@
 "use client";
-
 import { useState } from "react";
+
 import { useRouter } from "next/navigation";
 import { Edit2, Trash2, Receipt } from "lucide-react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
-import Link from "next/link";
+import { FileViewerModal } from "@/components/ui/FileViewerModal";
 
-export default function GastosTable({ gastos }: { gastos: any[] }) {
+export default function GastosTable({ gastos, onEdit }: { gastos: any[], onEdit: (gasto: any) => void }) {
   const router = useRouter();
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean, idToDelete: string | null }>({ isOpen: false, idToDelete: null });
+  const [viewerModal, setViewerModal] = useState<{ isOpen: boolean, fileUrl: string | null }>({ isOpen: false, fileUrl: null });
 
   const handleDelete = async () => {
     if (!confirmModal.idToDelete) return;
@@ -36,6 +37,7 @@ export default function GastosTable({ gastos }: { gastos: any[] }) {
               <th>Cuenta</th>
               <th>Concepto</th>
               <th style={{ textAlign: 'right' }}>Importe</th>
+              <th style={{ textAlign: 'center' }}>Estado</th>
               <th style={{ textAlign: 'center' }}>Ticket</th>
               <th style={{ width: '80px', textAlign: 'center' }}>Acciones</th>
             </tr>
@@ -43,26 +45,42 @@ export default function GastosTable({ gastos }: { gastos: any[] }) {
           <tbody>
             {gastos.map((gasto) => (
               <tr key={gasto.id}>
-                <td>{new Date(gasto.fecha).toLocaleDateString()}</td>
+                <td>{new Date(gasto.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                 <td style={{ fontWeight: 500 }}>{gasto.cuenta}</td>
                 <td>{gasto.concepto}</td>
                 <td style={{ textAlign: 'right', fontWeight: 'bold' }} className="text-danger">
                   ${gasto.importe.toFixed(2)}
                 </td>
                 <td style={{ textAlign: 'center' }}>
+                  <span className={`badge ${gasto.pagado ? 'badge-primary' : 'badge-secondary'}`} style={{ 
+                    background: gasto.pagado ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                    color: gasto.pagado ? 'var(--success)' : 'var(--warning)',
+                    border: `1px solid ${gasto.pagado ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+                  }}>
+                    {gasto.pagado ? 'Pagado' : 'Pendiente'}
+                  </span>
+                </td>
+                <td style={{ textAlign: 'center' }}>
                   {gasto.comprobanteUrl && (
-                    <a href={gasto.comprobanteUrl} target="_blank" rel="noopener noreferrer" className="btn-link" style={{ color: 'var(--accent-primary)' }} title="Ver Ticket">
+                    <button 
+                      onClick={() => setViewerModal({ isOpen: true, fileUrl: gasto.comprobanteUrl })} 
+                      className="btn-link" 
+                      style={{ color: 'var(--accent-primary)' }} 
+                      title="Ver Ticket"
+                    >
                       <Receipt size={18} />
-                    </a>
+                    </button>
                   )}
                 </td>
-                <td style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                  <Link href={`/gastos/${gasto.id}/editar`} className="btn-link" style={{ color: 'var(--text-secondary)' }} title="Editar">
-                    <Edit2 size={16} />
-                  </Link>
-                  <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: gasto.id })} className="btn-link text-danger" title="Eliminar">
-                    <Trash2 size={16} />
-                  </button>
+                <td style={{ textAlign: 'center' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                    <button onClick={() => onEdit(gasto)} className="btn-link" style={{ color: 'var(--text-secondary)' }} title="Editar">
+                      <Edit2 size={16} />
+                    </button>
+                    <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: gasto.id })} className="btn-link text-danger" title="Eliminar">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -86,6 +104,12 @@ export default function GastosTable({ gastos }: { gastos: any[] }) {
         confirmText="Sí, eliminar" 
         cancelText="Cancelar" 
         isDanger={true} 
+      />
+
+      <FileViewerModal 
+        isOpen={viewerModal.isOpen} 
+        fileUrl={viewerModal.fileUrl} 
+        onClose={() => setViewerModal({ isOpen: false, fileUrl: null })} 
       />
     </>
   );

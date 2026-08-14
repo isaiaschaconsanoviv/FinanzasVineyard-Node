@@ -13,11 +13,13 @@ export default function EditGastoForm({ gasto }: { gasto: any }) {
     fecha: new Date(gasto.fecha).toISOString().split('T')[0],
     cuenta: gasto.cuenta || "",
     concepto: gasto.concepto || "",
-    importe: gasto.importe?.toString() || ""
+    importe: gasto.importe?.toString() || "",
+    pagado: gasto.pagado ?? true
   });
 
   const handleChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,6 +123,25 @@ export default function EditGastoForm({ gasto }: { gasto: any }) {
               required 
             />
           </div>
+        </div>
+
+        <div className="mb-6" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <input
+            type="checkbox"
+            id="pagado"
+            name="pagado"
+            checked={formData.pagado}
+            onChange={handleChange}
+            style={{ width: '1.25rem', height: '1.25rem', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+          />
+          <label htmlFor="pagado" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
+            <span className="font-medium" style={{ color: formData.pagado ? 'var(--success)' : 'var(--warning)' }}>
+              {formData.pagado ? 'Gasto Pagado' : 'Pendiente por Pagar'}
+            </span>
+            <span className="text-xs text-gray-400">
+              {formData.pagado ? 'El dinero ya fue entregado/transferido.' : 'Aún se debe este importe.'}
+            </span>
+          </label>
         </div>
 
         <button type="submit" className="btn btn-primary w-full" disabled={loading} style={{ padding: '0.8rem' }}>

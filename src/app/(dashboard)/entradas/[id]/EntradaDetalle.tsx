@@ -8,6 +8,7 @@ import { Trash2, ChevronLeft, Plus, Edit2, Receipt, Share2 } from "lucide-react"
 import { Select } from "@/components/ui/Select";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { GastoModal } from "@/components/ui/GastoModal";
+import { FileViewerModal } from "@/components/ui/FileViewerModal";
 
 export default function EntradaDetalle({ entrada }: { entrada: any }) {
   const router = useRouter();
@@ -18,7 +19,8 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
   const [gastoToEdit, setGastoToEdit] = useState<any>(null);
   const [tcLocal, setTcLocal] = useState(entrada.tipoCambio.toString());
   const [isEditingTc, setIsEditingTc] = useState(false);
-  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, idToDelete: string | null, type: 'registro' | 'gasto'}>({ isOpen: false, idToDelete: null, type: 'registro' });
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, idToDelete: string | null, type: 'registro' | 'gasto' | 'entrada'}>({ isOpen: false, idToDelete: null, type: 'registro' });
+  const [viewerModal, setViewerModal] = useState<{ isOpen: boolean, fileUrl: string | null }>({ isOpen: false, fileUrl: null });
   const [otros, setOtros] = useState<{ id: number, tipo: string, importe: string, moneda: string }[]>([]);
   const [formData, setFormData] = useState({
     nombre: "",
@@ -228,12 +230,24 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
     }
   };
 
+  const handleDeleteEntrada = async () => {
+    try {
+      const res = await fetch(`/api/entradas/${entrada.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Error al eliminar entrada");
+      router.push("/entradas");
+    } catch (err) {
+      alert("Error al eliminar la entrada");
+    }
+  };
+
   const handleConfirmDelete = () => {
     if (!confirmModal.idToDelete) return;
     if (confirmModal.type === 'registro') {
       handleDelete(confirmModal.idToDelete);
-    } else {
+    } else if (confirmModal.type === 'gasto') {
       handleDeleteGasto(confirmModal.idToDelete);
+    } else if (confirmModal.type === 'entrada') {
+      handleDeleteEntrada();
     }
   };
 
@@ -278,12 +292,14 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
 
     let text = `${emojiResumen} *Resumen de Entrada*\n${emojiFecha} Fecha: ${fechaFormat}\n\n`;
     text += `${emojiIngresos} *Ingresos Base:* ${formatearMonto(sumDiezmosOfrendas)}\n`;
+    if (totalDiezmosMXN > 0) text += `   ~ Diezmos: ${formatearMonto(totalDiezmosMXN)}\n`;
+    if (totalOfrendasMXN > 0) text += `   ~ Ofrendas: ${formatearMonto(totalOfrendasMXN)}\n`;
     
     const totalGastos = gastosIngreso + gastosDiezmo + gastosNacional + gastosMisiones + gastosEventos + gastosPastor;
     if (totalGastos > 0) {
       text += `${emojiGastos} *Gastos Registrados:* -${formatearMonto(totalGastos)}\n`;
       entrada.gastos.forEach((g: any) => {
-        text += `   ~ ${g.cuenta} (${g.concepto}): -${formatearMonto(g.importe)}\n`;
+        text += `   ~ ${g.concepto} (${g.cuenta}): -${formatearMonto(g.importe)}\n`;
       });
     }
 
@@ -301,13 +317,13 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
     if (aguinaldo) {
       text += `- Aguinaldo Pastor: $100.00\n`;
     }
-    text += `- 10% Diezmo: ${formatearMonto(t10pdiezmo)}\n`;
-    text += `- 3% Viña Nacional: ${formatearMonto(t3pnacional)}\n`;
-    text += `- Misiones (10%): ${formatearMonto(t10pmisiones)}\n`;
-    text += `- Eventos (5%): ${formatearMonto(t5peventos)}\n`;
-    text += `- Pastor: ${formatearMonto(totalfinalpastor)}\n`;
+    if (t10pdiezmo > 0) text += `- 10% Diezmo: ${formatearMonto(t10pdiezmo)}\n`;
+    if (t3pnacional > 0) text += `- 3% Viña Nacional: ${formatearMonto(t3pnacional)}\n`;
+    if (t10pmisiones > 0) text += `- Misiones (10%): ${formatearMonto(t10pmisiones)}\n`;
+    if (t5peventos > 0) text += `- Eventos (5%): ${formatearMonto(t5peventos)}\n`;
+    if (totalfinalpastor > 0) text += `- Pastor: ${formatearMonto(totalfinalpastor)}\n`;
     
-    text += `\n${emojiFondo} *Fondo General (Ingreso Neto):* ${formatearMonto(ingreso)}\n`;
+    text += `\n${emojiFondo} *Ingreso Neto:* ${formatearMonto(ingreso)}\n`;
 
     const url = `https://api.whatsapp.com/send/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -348,6 +364,10 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
           </div>
         </div>
         <div className="header-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+          <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: entrada.id, type: 'entrada' })} className="btn btn-secondary" style={{ gap: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}>
+            <Trash2 size={18} />
+            Eliminar Entrada
+          </button>
           <button onClick={handleShareWhatsApp} className="btn btn-secondary" style={{ gap: '0.5rem', backgroundColor: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', borderColor: 'rgba(34, 197, 94, 0.3)' }}>
             <Share2 size={18} />
             Compartir
@@ -569,6 +589,7 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                     <th>Fondo/Cuenta</th>
                     <th>Concepto</th>
                     <th style={{ textAlign: 'right' }}>Importe</th>
+                    <th style={{ textAlign: 'center' }}>Estado</th>
                     <th style={{ textAlign: 'center' }}>Ticket</th>
                     <th style={{ width: '80px', textAlign: 'center' }}>Acciones</th>
                   </tr>
@@ -578,19 +599,35 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                     <tr key={g.id}>
                       <td style={{ fontWeight: 500 }}>{g.cuenta}</td>
                       <td>{g.concepto}</td>
-                      <td style={{ textAlign: 'right', color: 'var(--danger-primary)', fontWeight: 'bold' }}>
+                      <td style={{ textAlign: 'right', color: 'var(--danger)', fontWeight: 'bold' }}>
                         -{formatearMonto(g.importe)}
                       </td>
                       <td style={{ textAlign: 'center' }}>
+                        <span className={`badge ${g.pagado ? 'badge-primary' : 'badge-secondary'}`} style={{ 
+                          background: g.pagado ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                          color: g.pagado ? 'var(--success)' : 'var(--warning)',
+                          border: `1px solid ${g.pagado ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+                        }}>
+                          {g.pagado ? 'Pagado' : 'Pendiente'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
                         {g.comprobanteUrl && (
-                          <a href={g.comprobanteUrl} target="_blank" rel="noopener noreferrer" className="btn-link" style={{ color: 'var(--accent-primary)' }} title="Ver Ticket">
+                          <button 
+                            onClick={() => setViewerModal({ isOpen: true, fileUrl: g.comprobanteUrl })} 
+                            className="btn-link" 
+                            style={{ color: 'var(--accent-primary)' }} 
+                            title="Ver Ticket"
+                          >
                             <Receipt size={18} />
-                          </a>
+                          </button>
                         )}
                       </td>
-                      <td style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                        <button onClick={() => openGastoModal(g)} className="btn-link" style={{ color: 'var(--text-secondary)' }} title="Editar"><Edit2 size={16} /></button>
-                        <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: g.id, type: 'gasto' })} className="btn-link text-danger" title="Eliminar"><Trash2 size={16} /></button>
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                          <button onClick={() => openGastoModal(g)} className="btn-link" style={{ color: 'var(--text-secondary)' }} title="Editar"><Edit2 size={16} /></button>
+                          <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: g.id, type: 'gasto' })} className="btn-link text-danger" title="Eliminar"><Trash2 size={16} /></button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -703,8 +740,8 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
         isOpen={confirmModal.isOpen} 
         onClose={() => setConfirmModal({ isOpen: false, idToDelete: null, type: 'registro' })} 
         onConfirm={handleConfirmDelete} 
-        title={`Eliminar ${confirmModal.type === 'registro' ? 'Registro' : 'Gasto'}`} 
-        message={`¿Estás seguro de que deseas eliminar este ${confirmModal.type}? Esta acción no se puede deshacer.`} 
+        title={`Eliminar ${confirmModal.type === 'registro' ? 'Registro' : confirmModal.type === 'gasto' ? 'Gasto' : 'Entrada'}`} 
+        message={`¿Estás seguro de que deseas eliminar est${confirmModal.type === 'entrada' ? 'a' : 'e'} ${confirmModal.type}? Esta acción no se puede deshacer.`} 
         confirmText="Sí, eliminar" 
         cancelText="Cancelar" 
         isDanger={true} 
@@ -719,6 +756,12 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
         fechaPredefinida={new Date(entrada.fecha)}
         entradaId={entrada.id}
         gastoToEdit={gastoToEdit}
+      />
+
+      <FileViewerModal 
+        isOpen={viewerModal.isOpen} 
+        fileUrl={viewerModal.fileUrl} 
+        onClose={() => setViewerModal({ isOpen: false, fileUrl: null })} 
       />
     </div>
   );

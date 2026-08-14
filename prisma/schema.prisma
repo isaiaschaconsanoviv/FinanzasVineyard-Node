@@ -62,6 +62,7 @@ model Gasto {
   importe      Float
   elaboradoPor String
   comprobanteUrl String?
+  pagado       Boolean  @default(true)
 }
 
 model Corte {

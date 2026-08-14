@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     // Upload to Cloudinary using upload_stream
     const uploadResult = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "finanzas_tickets", resource_type: "auto" },
+        { folder: "finanzas_tickets", resource_type: "auto", type: "authenticated" },
         (error, result) => {
           if (error) return reject(error);
           resolve(result);

@@ -68,7 +68,7 @@ export default function UsuariosClient({ usuarios, session }: { usuarios: any[],
                   )}
                 </td>
                 <td style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                  {new Date(user.lastLogin).toLocaleDateString()}
+                  {new Date(user.lastLogin).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </td>
                 <td style={{ textAlign: 'right' }}>
                   {isAdmin && (

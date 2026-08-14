@@ -39,7 +39,7 @@ export default async function EntradasPage() {
             {entradas.map((entrada) => {
               return (
                 <tr key={entrada.id}>
-                  <td style={{ fontWeight: 500 }}>{new Date(entrada.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC' })}</td>
+                  <td style={{ fontWeight: 500 }}>{new Date(entrada.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td style={{ textAlign: 'right' }}>${entrada.tipoCambio.toFixed(2)}</td>
                   <td>{entrada.elaboradoPor}</td>
                   <td style={{ textAlign: 'right', fontWeight: 'bold' }} className="text-success">

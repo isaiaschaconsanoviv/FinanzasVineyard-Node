@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Select } from './Select';
 
 interface GastoModalProps {
@@ -13,6 +14,7 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
   const [cuenta, setCuenta] = useState('Ingreso');
   const [concepto, setConcepto] = useState('');
   const [importe, setImporte] = useState('');
+  const [pagado, setPagado] = useState(true);
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -24,10 +26,12 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
         setCuenta(gastoToEdit.cuenta);
         setConcepto(gastoToEdit.concepto);
         setImporte(gastoToEdit.importe.toString());
+        setPagado(gastoToEdit.pagado ?? true);
       } else {
         setCuenta('Ingreso');
         setConcepto('');
         setImporte('');
+        setPagado(true);
         setFile(null);
       }
       setError('');
@@ -35,7 +39,10 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
     }
   }, [isOpen, gastoToEdit]);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +79,7 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
           cuenta,
           concepto,
           importe: parseFloat(importe),
+          pagado,
           comprobanteUrl: comprobanteUrl || undefined,
           ...(entradaId && !isEditing ? { entradaId } : {})
         })
@@ -104,7 +112,7 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
     { value: 'Ingreso', label: 'Fondo General (Ingreso)' }
   ];
 
-  return (
+  return createPortal(
     <div className="modal-overlay" style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -183,6 +191,24 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
               />
             </div>
 
+            <div className="mb-6" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <input
+                type="checkbox"
+                id="pagado"
+                checked={pagado}
+                onChange={(e) => setPagado(e.target.checked)}
+                style={{ width: '1.25rem', height: '1.25rem', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+              />
+              <label htmlFor="pagado" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
+                <span className="font-medium" style={{ color: pagado ? 'var(--success)' : 'var(--warning)' }}>
+                  {pagado ? 'Gasto Pagado' : 'Pendiente por Pagar'}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {pagado ? 'El dinero ya fue entregado/transferido.' : 'Aún se debe este importe.'}
+                </span>
+              </label>
+            </div>
+
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={onClose} className="btn btn-secondary" disabled={isSubmitting}>
                 Cancelar
@@ -194,6 +220,7 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

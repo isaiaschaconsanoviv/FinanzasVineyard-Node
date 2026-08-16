@@ -40,7 +40,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Faltan datos obligatorios" }, { status: 400 });
     }
 
-    const parsedDate = fecha ? new Date(fecha) : new Date();
+    let parsedDate = new Date();
+    if (fecha) {
+      if (fecha.includes('T')) {
+        parsedDate = new Date(fecha);
+      } else {
+        const timePart = new Date().toISOString().split('T')[1];
+        parsedDate = new Date(`${fecha}T${timePart}`);
+      }
+    }
 
     try {
       await validarFechaCorte(prisma, parsedDate);

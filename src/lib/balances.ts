@@ -226,13 +226,9 @@ export async function validarFechaCorte(prisma: PrismaClient, fecha: Date) {
     orderBy: { fecha: 'desc' }
   });
 
-  // Solo comparar la parte de la fecha, ignorando la hora
-  const fechaOperacion = new Date(fecha.toISOString().split('T')[0]);
-  
   if (ultimoCorte) {
-    const fechaCorte = new Date(ultimoCorte.fecha.toISOString().split('T')[0]);
-    if (fechaOperacion <= fechaCorte) {
-      throw new Error(`La fecha del registro no puede ser igual o anterior a la fecha del último corte (${fechaCorte.toLocaleDateString()}).`);
+    if (fecha <= ultimoCorte.fecha) {
+      throw new Error(`La fecha del registro no puede ser anterior al último corte (${ultimoCorte.fecha.toLocaleString('es-MX')}).`);
     }
   }
 }

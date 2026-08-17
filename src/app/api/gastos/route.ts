@@ -26,14 +26,14 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || (session.user as any)?.rol === "READONLY") {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const body = await req.json();
     const { fecha, cuenta, concepto, importe, elaboradoPor, entradaId, comprobanteUrl, pagado } = body;
 
-    const nombreUsuario = elaboradoPor || (session.user as any)?.nombre || session.user?.name || "Administrador";
+    const nombreUsuario = elaboradoPor || (session.user as any)?.name || "Administrador";
 
     if (!cuenta || !concepto || importe === undefined) {
       return NextResponse.json({ error: "Faltan datos obligatorios" }, { status: 400 });

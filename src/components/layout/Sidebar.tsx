@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 import "../../app/responsive.css";
 import { ConfirmModal } from "../ui/ConfirmModal";
 
-export function Sidebar({ userName }: { userName: string }) {
+export function Sidebar({ userName, userRole }: { userName: string, userRole?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const pathname = usePathname();
@@ -63,15 +63,19 @@ export function Sidebar({ userName }: { userName: string }) {
             <span>Cortes de Caja</span>
           </Link>
           
-          <div className="nav-category">Configuración</div>
-          <Link href="/configuracion" className="nav-link" onClick={closeMenu}>
-            <Settings size={18} />
-            <span>Motor de Reglas</span>
-          </Link>
-          <Link href="/usuarios" className="nav-link" onClick={closeMenu}>
-            <Users size={18} />
-            <span>Usuarios</span>
-          </Link>
+          {userRole === "ADMIN" && (
+            <>
+              <div className="nav-category">Configuración</div>
+              <Link href="/configuracion" className="nav-link" onClick={closeMenu}>
+                <Settings size={18} />
+                <span>Motor de Reglas</span>
+              </Link>
+              <Link href="/usuarios" className="nav-link" onClick={closeMenu}>
+                <Users size={18} />
+                <span>Usuarios</span>
+              </Link>
+            </>
+          )}
         </nav>
         <div className="sidebar-footer">
           <button 

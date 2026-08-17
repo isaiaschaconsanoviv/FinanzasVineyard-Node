@@ -17,7 +17,10 @@ export default async function DashboardLayout({
 
   return (
     <div className="dashboard-container">
-      <Sidebar userName={((session.user as any)?.nombre || session.user?.name || "").split(" ")[0]} />
+      <Sidebar 
+        userName={((session.user as any)?.nombre || session.user?.name || "").split(" ")[0]} 
+        userRole={(session.user as any)?.rol}
+      />
       
       <main className="main-content">
         <header className="main-header glass-panel animate-fade-in desktop-only-header">

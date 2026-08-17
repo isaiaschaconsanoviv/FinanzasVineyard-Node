@@ -56,7 +56,7 @@ export default function UsuariosClient({ usuarios, session }: { usuarios: any[],
                 <td>{user.nombre || <span style={{ color: 'var(--text-muted)' }}>No definido</span>}</td>
                 <td style={{ fontWeight: 500 }}>{user.usuario}</td>
                 <td>
-                  <span className={`badge ${user.rol === 'ADMIN' ? 'badge-primary' : 'badge-secondary'}`}>
+                  <span className={`badge ${user.rol === 'ADMIN' ? 'badge-primary' : user.rol === 'STAFF' ? 'badge-info' : 'badge-secondary'}`}>
                     {user.rol}
                   </span>
                 </td>

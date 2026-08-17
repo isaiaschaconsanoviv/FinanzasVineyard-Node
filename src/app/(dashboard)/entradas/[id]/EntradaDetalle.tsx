@@ -8,6 +8,7 @@ import { Trash2, ChevronLeft, Plus, Edit2, Receipt, Share2 } from "lucide-react"
 import { Select } from "@/components/ui/Select";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { GastoModal } from "@/components/ui/GastoModal";
+import { RegistroModal } from "@/components/ui/RegistroModal";
 import { FileViewerModal } from "@/components/ui/FileViewerModal";
 
 export default function EntradaDetalle({ entrada }: { entrada: any }) {
@@ -17,6 +18,8 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
   const [error, setError] = useState("");
   const [isGastoModalOpen, setIsGastoModalOpen] = useState(false);
   const [gastoToEdit, setGastoToEdit] = useState<any>(null);
+  const [isRegistroModalOpen, setIsRegistroModalOpen] = useState(false);
+  const [registroToEdit, setRegistroToEdit] = useState<any>(null);
   const [tcLocal, setTcLocal] = useState(entrada.tipoCambio.toString());
   const [isEditingTc, setIsEditingTc] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, idToDelete: string | null, type: 'registro' | 'gasto' | 'entrada'}>({ isOpen: false, idToDelete: null, type: 'registro' });
@@ -254,6 +257,11 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
   const openGastoModal = (gasto?: any) => {
     setGastoToEdit(gasto || null);
     setIsGastoModalOpen(true);
+  };
+
+  const openRegistroModal = (registro: any) => {
+    setRegistroToEdit(registro);
+    setIsRegistroModalOpen(true);
   };
 
   const formatearMonto = (monto: number) => {
@@ -525,7 +533,18 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
               <tbody>
                 {entrada.registros.map((r: any) => (
                   <tr key={r.id}>
-                    <td style={{ fontWeight: 500, verticalAlign: 'top' }}>{r.nombre}</td>
+                    <td style={{ fontWeight: 500, verticalAlign: 'top' }}>
+                      <span 
+                        onClick={() => openRegistroModal(r)} 
+                        style={{ cursor: 'pointer', color: 'var(--accent-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.2s' }}
+                        title="Editar Registro"
+                        onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                        onMouseOut={(e) => e.currentTarget.style.color = 'var(--accent-primary)'}
+                      >
+                        <Edit2 size={14} />
+                        {r.nombre}
+                      </span>
+                    </td>
                     <td style={{ textAlign: 'right', verticalAlign: 'top' }}>
                       {r.diezmo > 0 ? (
                         <>
@@ -569,8 +588,12 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                 <tfoot>
                   <tr style={{ borderTop: '2px solid rgba(255,255,255,0.1)' }}>
                     <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Totales Base</td>
-                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{formatearMonto(totalDiezmosMXN)}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{formatearMonto(totalOfrendasMXN)}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-primary)' }}>
+                      {formatearMonto(totalDiezmosMXN)} <small className="font-normal">MXN</small>
+                    </td>
+                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-primary)' }}>
+                      {formatearMonto(totalOfrendasMXN)} <small className="font-normal">MXN</small>
+                    </td>
                     <td></td>
                     <td></td>
                   </tr>
@@ -674,29 +697,29 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
             {aguinaldo && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Aguinaldo Pastor</span>
-                <span className="font-bold text-gray-300">$100.00</span>
+                <span className="font-bold text-gray-300">$100.00 <small className="font-normal">MXN</small></span>
               </div>
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>10% Diezmo</span>
-              <span className="font-bold text-gray-300">{formatearMonto(t10pdiezmo)}</span>
+              <span className="font-bold text-gray-300">{formatearMonto(t10pdiezmo)} <small className="font-normal">MXN</small></span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>3% Viña Nacional</span>
-              <span className="font-bold text-gray-300">{formatearMonto(t3pnacional)}</span>
+              <span className="font-bold text-gray-300">{formatearMonto(t3pnacional)} <small className="font-normal">MXN</small></span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Misiones (10%)</span>
-              <span className="font-bold text-gray-300">{formatearMonto(t10pmisiones)}</span>
+              <span className="font-bold text-gray-300">{formatearMonto(t10pmisiones)} <small className="font-normal">MXN</small></span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Eventos (5%)</span>
-              <span className="font-bold text-gray-300">{formatearMonto(t5peventos)}</span>
+              <span className="font-bold text-gray-300">{formatearMonto(t5peventos)} <small className="font-normal">MXN</small></span>
             </div>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '-0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Total</span>
-              <span className="font-bold text-sm" style={{ color: 'var(--accent-secondary)' }}>{formatearMonto(t10pdiezmo + t3pnacional + t10pmisiones + t5peventos + (aguinaldo ? 100 : 0))}</span>
+              <span className="font-bold text-sm" style={{ color: 'var(--accent-secondary)' }}>{formatearMonto(t10pdiezmo + t3pnacional + t10pmisiones + t5peventos + (aguinaldo ? 100 : 0))} <small className="font-normal">MXN</small></span>
             </div>
             
             <div style={{ margin: '1rem 0', borderTop: '1px dashed rgba(255,255,255,0.2)' }}></div>
@@ -704,23 +727,23 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Pastor</span>
-                <span className="font-bold text-gray-300">{formatearMonto(tparcialpastor)}</span>
+                <span className="font-bold text-gray-300">{formatearMonto(tparcialpastor)} <small className="font-normal">MXN</small></span>
               </div>
               {apoyogasolina && (
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span className="text-sm" style={{ paddingLeft: '1rem', color: 'var(--text-secondary)' }}>Apoyo Gasolina</span>
-                  <span className="font-bold text-sm text-gray-300">$250.00</span>
+                  <span className="font-bold text-sm text-gray-300">$250.00 <small className="font-normal">MXN</small></span>
                 </div>
               )}
               {apoyocelular && (
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span className="text-sm" style={{ paddingLeft: '1rem', color: 'var(--text-secondary)' }}>Apoyo Celular</span>
-                  <span className="font-bold text-sm text-gray-300">$250.00</span>
+                  <span className="font-bold text-sm text-gray-300">$250.00 <small className="font-normal">MXN</small></span>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Total</span>
-                <span className="font-bold text-sm" style={{ color: 'var(--accent-secondary)' }}>{formatearMonto(totalfinalpastor)}</span>
+                <span className="font-bold text-sm" style={{ color: 'var(--accent-secondary)' }}>{formatearMonto(totalfinalpastor)} <small className="font-normal">MXN</small></span>
               </div>
             </div>
 
@@ -728,7 +751,7 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Ingreso</span>
-              <span className="font-bold text-xl text-success">{formatearMonto(ingreso)}</span>
+              <span className="font-bold text-xl text-success">{formatearMonto(ingreso)} <small className="font-normal">MXN</small></span>
             </div>
           </div>
         </div>
@@ -756,6 +779,16 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
         fechaPredefinida={new Date(entrada.fecha)}
         entradaId={entrada.id}
         gastoToEdit={gastoToEdit}
+      />
+
+      <RegistroModal
+        isOpen={isRegistroModalOpen}
+        onClose={() => setIsRegistroModalOpen(false)}
+        entradaId={entrada.id}
+        registroToEdit={registroToEdit}
+        onSaved={() => router.refresh()}
+        nombresUnicos={nombresUnicos}
+        conceptosUnicos={otrosKeys}
       />
 
       <FileViewerModal 

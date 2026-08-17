@@ -293,6 +293,8 @@ export function UsuarioModal({ isOpen, onClose, onSaved, usuarioInicial }: Usuar
                 onChange={(e) => handleChange(e as any)}
                 options={[
                   { value: "READONLY", label: "Solo Lectura (Read Only)" },
+                  { value: "GASTOS", label: "Registro de Gastos" },
+                  { value: "STAFF", label: "Staff Operativo (Acceso Total)" },
                   { value: "ADMIN", label: "Administrador" }
                 ]}
                 required

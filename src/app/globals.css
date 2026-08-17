@@ -180,6 +180,7 @@ input[type="number"] {
 
 .badge-primary { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
 .badge-secondary { background: rgba(107, 114, 128, 0.2); color: #d1d5db; }
+.badge-info { background: rgba(14, 165, 233, 0.2); color: #7dd3fc; }
 
 /* Custom Select Component */
 .custom-select-container {

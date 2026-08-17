@@ -6,10 +6,18 @@ import { Edit2, Trash2, Receipt } from "lucide-react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { FileViewerModal } from "@/components/ui/FileViewerModal";
 
-export default function GastosTable({ gastos, onEdit }: { gastos: any[], onEdit: (gasto: any) => void }) {
+export default function GastosTable({ gastos, onEdit, session }: { gastos: any[], onEdit: (gasto: any) => void, session: any }) {
+  const userRole = (session?.user as any)?.rol || "READONLY";
+  const userName = (session?.user as any)?.name || "";
   const router = useRouter();
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean, idToDelete: string | null }>({ isOpen: false, idToDelete: null });
   const [viewerModal, setViewerModal] = useState<{ isOpen: boolean, fileUrl: string | null }>({ isOpen: false, fileUrl: null });
+
+  const canEdit = (gasto: any) => {
+    if (userRole === "ADMIN" || userRole === "STAFF") return true;
+    if (userRole === "GASTOS" && gasto.elaboradoPor === userName) return true;
+    return false;
+  };
 
   const handleDelete = async () => {
     if (!confirmModal.idToDelete) return;
@@ -73,14 +81,18 @@ export default function GastosTable({ gastos, onEdit }: { gastos: any[], onEdit:
                   )}
                 </td>
                 <td style={{ textAlign: 'center' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
-                    <button onClick={() => onEdit(gasto)} className="btn-link" style={{ color: 'var(--text-secondary)' }} title="Editar">
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: gasto.id })} className="btn-link text-danger" title="Eliminar">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  {canEdit(gasto) ? (
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                      <button onClick={() => onEdit(gasto)} className="btn-link" style={{ color: 'var(--text-secondary)' }} title="Editar">
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: gasto.id })} className="btn-link text-danger" title="Eliminar">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-gray-500 text-sm">-</span>
+                  )}
                 </td>
               </tr>
             ))}

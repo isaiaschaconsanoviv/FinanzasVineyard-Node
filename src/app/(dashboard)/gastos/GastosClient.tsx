@@ -6,7 +6,8 @@ import GastosTable from "./GastosTable";
 import { GastoModal } from "@/components/ui/GastoModal";
 import { useRouter } from "next/navigation";
 
-export default function GastosClient({ gastos, total }: { gastos: any[], total: number }) {
+export default function GastosClient({ gastos, total, session }: { gastos: any[], total: number, session: any }) {
+  const userRole = (session?.user as any)?.rol || "READONLY";
   const [modalOpen, setModalOpen] = useState(false);
   const [gastoToEdit, setGastoToEdit] = useState<any>(null);
   const router = useRouter();
@@ -36,13 +37,15 @@ export default function GastosClient({ gastos, total }: { gastos: any[], total: 
             Total Histórico: <span className="text-danger font-bold">${total.toFixed(2)}</span>
           </p>
         </div>
-        <button onClick={handleOpenNew} className="btn btn-primary" style={{ gap: '0.5rem' }}>
-          <Plus size={18} />
-          Registrar Gasto
-        </button>
+        {userRole !== "READONLY" && (
+          <button onClick={handleOpenNew} className="btn btn-primary" style={{ gap: '0.5rem' }}>
+            <Plus size={18} />
+            Registrar Gasto
+          </button>
+        )}
       </div>
 
-      <GastosTable gastos={gastos} onEdit={handleOpenEdit} />
+      <GastosTable gastos={gastos} onEdit={handleOpenEdit} session={session} />
 
       <GastoModal 
         isOpen={modalOpen} 

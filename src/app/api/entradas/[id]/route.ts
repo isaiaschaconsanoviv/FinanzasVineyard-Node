@@ -60,8 +60,8 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
   try {
     const params = await props.params;
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).rol !== "ADMIN") {
-        return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    if (!session || ((session.user as any).rol !== "ADMIN" && (session.user as any).rol !== "STAFF")) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const entrada = await prisma.entrada.findUnique({ where: { id: params.id }});

@@ -1,5 +1,6 @@
-import { DollarSign } from "lucide-react";
+import { DollarSign, TrendingUp } from "lucide-react";
 import ExchangeRateChart from "./ExchangeRateChart";
+import EntradasChart from "./EntradasChart";
 import { PrismaClient } from "@prisma/client";
 import { calcularSaldosActuales } from "@/lib/balances";
 
@@ -111,8 +112,47 @@ async function getHistoricalRates() {
   }
 }
 
+async function getEntradasHistoricoMes() {
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const entradas = await prisma.entrada.findMany({
+      where: { fecha: { gte: startOfMonth } },
+      select: { fecha: true, ingreso: true }
+    });
+
+    const daysInMonth = now.getDate(); // Up to today
+    const chartData = [];
+    
+    // Inicializar el arreglo con 0 para cada día hasta el día de hoy
+    const dailyTotals: Record<number, number> = {};
+    for (let i = 1; i <= daysInMonth; i++) {
+      dailyTotals[i] = 0;
+    }
+
+    entradas.forEach(e => {
+      // Extraemos el día usando UTC para evitar desfases si la fecha se guardó en medianoche UTC
+      const day = e.fecha.getUTCDate();
+      if (day >= 1 && day <= daysInMonth) {
+         dailyTotals[day] += e.ingreso;
+      }
+    });
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      chartData.push({ name: i.toString(), total: dailyTotals[i] });
+    }
+
+    return chartData;
+  } catch (error) {
+    console.error("Error fetching historico entradas:", error);
+    return [];
+  }
+}
+
 export default async function DashboardPage() {
   const chartData = await getHistoricalRates();
+  const entradasChartData = await getEntradasHistoricoMes();
   const mxnRate = chartData.length > 0 ? chartData[chartData.length - 1].rate : null;
   const stats = await getDashboardStats();
 
@@ -151,19 +191,40 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <div className="glass-panel p-8" style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(0,0,0,0.2))', minWidth: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h3 className="text-gray-400 mb-2">Tipo de Cambio (USD)</h3>
-            <p className="text-3xl font-bold text-white">
-              {mxnRate ? `$${mxnRate.toFixed(2)} MXN` : 'No disponible'}
-            </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        
+        {/* Gráfica de Entradas */}
+        <div className="glass-panel p-8" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(0,0,0,0.2))', minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h3 className="text-gray-400 mb-2">Histórico de Ingresos</h3>
+              <p className="text-3xl font-bold text-white">
+                {formatCurrency(stats.entradasMes)} <span className="text-sm font-normal text-gray-400">este mes</span>
+              </p>
+            </div>
+            <div style={{ padding: '0.5rem', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '50%', color: '#34d399' }}>
+              <TrendingUp size={24} />
+            </div>
           </div>
-          <div style={{ padding: '0.5rem', background: 'rgba(139, 92, 246, 0.2)', borderRadius: '50%', color: '#c4b5fd' }}>
-            <DollarSign size={24} />
-          </div>
+          <EntradasChart data={entradasChartData} />
         </div>
-        <ExchangeRateChart data={chartData} />
+
+        {/* Gráfica de Tipo de Cambio */}
+        <div className="glass-panel p-8" style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(0,0,0,0.2))', minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h3 className="text-gray-400 mb-2">Tipo de Cambio (USD)</h3>
+              <p className="text-3xl font-bold text-white">
+                {mxnRate ? `$${mxnRate.toFixed(2)} MXN` : 'No disponible'}
+              </p>
+            </div>
+            <div style={{ padding: '0.5rem', background: 'rgba(139, 92, 246, 0.2)', borderRadius: '50%', color: '#c4b5fd' }}>
+              <DollarSign size={24} />
+            </div>
+          </div>
+          <ExchangeRateChart data={chartData} />
+        </div>
+
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
   try {
     const params = await props.params;
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || (session.user as any)?.rol === "READONLY") {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -46,6 +46,10 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
     const gastoExistente = await prisma.gasto.findUnique({ where: { id } });
     if (!gastoExistente) {
       return NextResponse.json({ error: "Gasto no encontrado" }, { status: 404 });
+    }
+
+    if ((session.user as any)?.rol === "GASTOS" && gastoExistente.elaboradoPor !== (session.user as any)?.name) {
+      return NextResponse.json({ error: "Prohibido: Solo puedes modificar tus propios gastos" }, { status: 403 });
     }
 
     try {
@@ -79,7 +83,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
   try {
     const params = await props.params;
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || (session.user as any)?.rol === "READONLY") {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -88,6 +92,10 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
     const gastoExistente = await prisma.gasto.findUnique({ where: { id } });
     if (!gastoExistente) {
       return NextResponse.json({ error: "Gasto no encontrado" }, { status: 404 });
+    }
+
+    if ((session.user as any)?.rol === "GASTOS" && gastoExistente.elaboradoPor !== (session.user as any)?.name) {
+      return NextResponse.json({ error: "Prohibido: Solo puedes eliminar tus propios gastos" }, { status: 403 });
     }
 
     try {

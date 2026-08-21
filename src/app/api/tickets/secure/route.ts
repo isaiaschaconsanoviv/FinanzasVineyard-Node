@@ -35,7 +35,15 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    let path = split[1];
+    const preParts = split[0].split('/');
+    const resourceType = preParts[preParts.length - 1]; // 'image', 'video', or 'raw'
+
+    let path = decodeURIComponent(split[1]);
+    
+    // Remove Cloudinary signature if present (e.g. s--vLyI662w--)
+    path = path.replace(/^s--[\w-]+--\//, '');
+    
+    // Remove version string if present (e.g. v1787324166)
     if (path.match(/^v\d+\//)) {
       path = path.replace(/^v\d+\//, '');
     }
@@ -43,23 +51,17 @@ export async function GET(req: NextRequest) {
     const publicId = lastDotIndex !== -1 ? path.substring(0, lastDotIndex) : path;
     const format = lastDotIndex !== -1 ? path.substring(lastDotIndex + 1) : '';
 
-    const isPdf = url.toLowerCase().endsWith('.pdf');
-    const isVideo = url.includes('/video/');
-    const resourceType = isPdf ? 'raw' : (isVideo ? 'video' : 'image');
-
-    // Generate signed URL valid for 5 minutes
-    const signedUrl = cloudinary.url(publicId, {
-      type: type, // "authenticated" or "upload"
+    const downloadUrl = cloudinary.utils.private_download_url(publicId, format, {
       resource_type: resourceType,
-      sign_url: true,
-      secure: true,
-      format: format || undefined,
-      expires_at: Math.floor(Date.now() / 1000) + 300
+      type: type
     });
 
     // Fetch the image on the server side and stream it to the client
-    const response = await fetch(signedUrl);
+    const response = await fetch(downloadUrl);
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Cloudinary error ${response.status} for ${downloadUrl}:`, errorText);
       throw new Error(`Cloudinary returned ${response.status}`);
     }
 

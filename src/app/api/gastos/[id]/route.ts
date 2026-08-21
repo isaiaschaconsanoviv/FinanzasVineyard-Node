@@ -13,19 +13,31 @@ cloudinary.config({
 
 const prisma = new PrismaClient();
 
-function extractPublicId(url: string) {
+function extractCloudinaryDetails(url: string) {
   try {
-    const split = url.split('/upload/');
-    if (split.length < 2) return null;
-    let path = split[1];
+    let type = "upload";
+    let split = url.split('/upload/');
+    if (split.length < 2) {
+      split = url.split('/authenticated/');
+      if (split.length >= 2) {
+        type = "authenticated";
+      } else {
+        return null;
+      }
+    }
+
+    const preParts = split[0].split('/');
+    const resourceType = preParts[preParts.length - 1];
+
+    let path = decodeURIComponent(split[1]);
+    path = path.replace(/^s--[\w-]+--\//, '');
     if (path.match(/^v\d+\//)) {
       path = path.replace(/^v\d+\//, '');
     }
     const lastDotIndex = path.lastIndexOf('.');
-    if (lastDotIndex !== -1) {
-      path = path.substring(0, lastDotIndex);
-    }
-    return path;
+    const publicId = lastDotIndex !== -1 ? path.substring(0, lastDotIndex) : path;
+    
+    return { publicId, resourceType, type };
   } catch {
     return null;
   }
@@ -105,9 +117,12 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
     }
 
     if (gastoExistente.comprobanteUrl) {
-      const publicId = extractPublicId(gastoExistente.comprobanteUrl);
-      if (publicId) {
-        await cloudinary.uploader.destroy(publicId).catch(console.error);
+      const details = extractCloudinaryDetails(gastoExistente.comprobanteUrl);
+      if (details) {
+        await cloudinary.uploader.destroy(details.publicId, {
+          resource_type: details.resourceType,
+          type: details.type
+        }).catch(console.error);
       }
     }
 

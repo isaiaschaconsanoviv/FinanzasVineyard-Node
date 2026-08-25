@@ -9,6 +9,14 @@ export function calcularDistribucionDinamica(
 ): Record<string, number> {
   const result: Record<string, number> = {};
   
+  const total = totalDiezmosMXN + totalOfrendasMXN;
+  // Regla de negocio inamovible: Si la entrada es 500 o menor, todo va al Pastor y no hay distribución.
+  if (total <= 500) {
+    result["Pastor"] = total;
+    result["Ingreso"] = 0;
+    return result;
+  }
+  
   // Sort rules by order
   const reglasOrdenadas = [...reglas].sort((a, b) => a.orden - b.orden);
   

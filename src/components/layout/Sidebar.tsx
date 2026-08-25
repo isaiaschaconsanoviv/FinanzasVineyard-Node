@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
-import { LayoutDashboard, Wallet, Receipt, Users, LogOut, Calculator, Settings, Menu, X } from "lucide-react";
+import { LayoutDashboard, Receipt, Calculator, Settings, Users, LogOut, Menu, X, Wallet, Briefcase } from 'lucide-react';
 import { usePathname } from "next/navigation";
 import "../../app/responsive.css";
 import { ConfirmModal } from "../ui/ConfirmModal";
@@ -69,6 +69,10 @@ export function Sidebar({ userName, userRole }: { userName: string, userRole?: s
               <Link href="/configuracion" className="nav-link" onClick={closeMenu}>
                 <Settings size={18} />
                 <span>Motor de Reglas</span>
+              </Link>
+              <Link href="/configuracion/cuentas" className="nav-link" onClick={closeMenu}>
+                <Briefcase size={18} />
+                <span>Cuentas Especiales</span>
               </Link>
               <Link href="/usuarios" className="nav-link" onClick={closeMenu}>
                 <Users size={18} />

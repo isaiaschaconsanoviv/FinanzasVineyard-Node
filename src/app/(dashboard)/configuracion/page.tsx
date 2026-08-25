@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Plus, Edit2, Trash2, GripVertical, Beaker } from "lucide-react";
 import { ReglaModal } from "@/components/ui/ReglaModal";
 import { TestSombraModal } from "@/components/ui/TestSombraModal";
@@ -69,6 +70,10 @@ export default function ConfiguracionPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
         <h1 className="text-3xl font-bold">Motor de Distribución</h1>
         <div style={{ display: 'flex', gap: '1rem' }}>
+          <Link href="/configuracion/cuentas" className="btn btn-dark" style={{ gap: '0.5rem' }}>
+            <Beaker size={18} />
+            Cuentas Especiales
+          </Link>
           <button 
             className="btn btn-secondary" 
             style={{ gap: '0.5rem' }}

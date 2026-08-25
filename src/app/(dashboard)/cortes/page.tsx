@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Eye } from "lucide-react";
 
 const prisma = new PrismaClient();
 
@@ -34,6 +34,7 @@ export default async function CortesPage() {
               <th>Notas</th>
               <th style={{ textAlign: 'right' }}>Total Físico (MXN)</th>
               <th style={{ textAlign: 'right' }}>Diferencia Total</th>
+              <th style={{ textAlign: 'center', width: '80px' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -54,12 +55,17 @@ export default async function CortesPage() {
                   <td style={{ textAlign: 'right', fontWeight: 'bold' }} className={totalDiferencia < 0 ? "text-danger" : totalDiferencia > 0 ? "text-accent" : "text-muted"}>
                     {totalDiferencia > 0 ? '+' : ''}{totalDiferencia === 0 ? '-' : `$${totalDiferencia.toFixed(2)}`}
                   </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <Link href={`/cortes/${corte.id}`} className="text-gray-400 hover:text-white transition-colors" title="Ver Detalle">
+                      <Eye size={20} style={{ display: 'inline' }} />
+                    </Link>
+                  </td>
                 </tr>
               );
             })}
             {cortes.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                   Aún no se ha realizado ningún corte de caja.
                 </td>
               </tr>

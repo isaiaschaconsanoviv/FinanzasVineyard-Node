@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Select } from "@/components/ui/Select";
@@ -16,6 +16,18 @@ export default function EditGastoForm({ gasto }: { gasto: any }) {
     importe: gasto.importe?.toString() || "",
     pagado: gasto.pagado ?? true
   });
+  const [customAccounts, setCustomAccounts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/cuentas')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCustomAccounts(data.filter((c: any) => c.activa));
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const handleChange = (e: any) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -88,7 +100,8 @@ export default function EditGastoForm({ gasto }: { gasto: any }) {
               { value: "Misiones (10%)", label: "Misiones (10%)" },
               { value: "Eventos (5%)", label: "Eventos (5%)" },
               { value: "Aguinaldo Pastor", label: "Aguinaldo Pastor" },
-              { value: "Ingreso", label: "Fondo General (Ingreso)" }
+              { value: "Ingreso", label: "Fondo General (Ingreso)" },
+              ...customAccounts.map(c => ({ value: c.nombre, label: c.nombre }))
             ]}
             required
           />

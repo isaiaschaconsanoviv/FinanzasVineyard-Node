@@ -79,6 +79,7 @@ export async function calcularDistribucion(entrada: any): Promise<Record<string,
         aguinaldoPastor = 100;
     }
   } else {
+    totalfinalpastor = sumDiezmosOfrendas;
     ingreso = 0;
   }
 
@@ -158,6 +159,11 @@ export async function calcularSaldosActuales(prisma: PrismaClient) {
     "Ingreso": 0
   };
 
+  const cuentasPersonalizadas = await prisma.cuentaPersonalizada.findMany({ where: { activa: true } });
+  cuentasPersonalizadas.forEach(c => {
+    saldos[c.nombre] = 0;
+  });
+
   if (ultimoCorte) {
     ultimoCorte.registros.forEach(r => {
       saldos[r.concepto] = r.saldoFisico;
@@ -200,9 +206,15 @@ export async function calcularSaldosActuales(prisma: PrismaClient) {
   const gastos = await prisma.gasto.findMany({
     where: { 
       fecha: { gt: fechaInicio },
-      entradaId: null // Ignoramos los que tienen entradaId, pues ya se descontaron en la distribución
+      OR: [
+        { entradaId: null },
+        { entradaId: { isSet: false } }
+      ] // Ignoramos los que tienen entradaId, pues ya se descontaron en la distribución
     }
   });
+
+  const customAccounts = await prisma.cuentaPersonalizada.findMany();
+  const customAccountNames = customAccounts.map(c => c.nombre);
 
   gastos.forEach(gasto => {
     if (["10% Diezmo", "3% Viña Nacional", "Misiones (10%)", "Eventos (5%)", "Aguinaldo Pastor", "Ingreso"].includes(gasto.cuenta)) {
@@ -211,6 +223,9 @@ export async function calcularSaldosActuales(prisma: PrismaClient) {
     } else if (gasto.cuenta === "Misiones") {
       if (saldos["Misiones (10%)"] === undefined) saldos["Misiones (10%)"] = 0;
       saldos["Misiones (10%)"] -= gasto.importe;
+    } else if (customAccountNames.includes(gasto.cuenta)) {
+      if (saldos[gasto.cuenta] === undefined) saldos[gasto.cuenta] = 0;
+      saldos[gasto.cuenta] -= gasto.importe;
     } else {
       // Gastos como Servicios, Mantenimiento, Sueldos, etc., se descuentan del Fondo General (Ingreso)
       if (saldos["Ingreso"] === undefined) saldos["Ingreso"] = 0;

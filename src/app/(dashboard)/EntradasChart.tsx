@@ -14,6 +14,10 @@ export default function EntradasChart({ data }: { data: any[] }) {
               <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
               <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
             </linearGradient>
+            <linearGradient id="colorPastor" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4}/>
+              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+            </linearGradient>
           </defs>
           <XAxis 
             dataKey="name" 
@@ -33,9 +37,20 @@ export default function EntradasChart({ data }: { data: any[] }) {
           />
           <Tooltip 
             contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-            itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
-            formatter={(value: any) => [new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(value)), 'Ingreso']}
+            formatter={(value: any, name: string) => [
+              new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(value)), 
+              name === 'total' ? 'Ingreso General' : 'Pastor'
+            ]}
             labelFormatter={(label) => `Día ${label}`}
+          />
+          <Area 
+            type="monotone" 
+            dataKey="pastor" 
+            stroke="#8b5cf6" 
+            strokeWidth={3} 
+            fillOpacity={1} 
+            fill="url(#colorPastor)" 
+            activeDot={{ r: 6, fill: '#8b5cf6', stroke: 'var(--bg-secondary)', strokeWidth: 2 }} 
           />
           <Area 
             type="monotone" 

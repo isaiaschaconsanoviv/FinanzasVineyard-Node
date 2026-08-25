@@ -44,3 +44,5 @@ next-env.d.ts
 /documentacion
 
 test-*.js
+test_*.*s
+scratch*

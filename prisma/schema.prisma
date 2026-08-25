@@ -96,3 +96,9 @@ model ReglaDistribucion {
   condicionMinimo Float?   // 100
   activo          Boolean  @default(true)
 }
+
+model CuentaPersonalizada {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre    String   @unique
+  activa    Boolean  @default(true)
+}

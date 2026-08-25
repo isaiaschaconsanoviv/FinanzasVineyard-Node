@@ -2,7 +2,7 @@ import { DollarSign, TrendingUp } from "lucide-react";
 import ExchangeRateChart from "./ExchangeRateChart";
 import EntradasChart from "./EntradasChart";
 import { PrismaClient } from "@prisma/client";
-import { calcularSaldosActuales } from "@/lib/balances";
+import { calcularSaldosActuales, calcularDistribucion } from "@/lib/balances";
 
 const prisma = new PrismaClient();
 
@@ -46,19 +46,20 @@ async function getDashboardStats() {
       entradasMes,
       gastosMes,
       balanceGeneral,
-      saldos: saldosFiltrados
+      saldos: saldosFiltrados,
+      ingresoAcumulado: saldos["Ingreso"] || 0
     };
   } catch (error) {
     console.error("Error fetching stats:", error);
-    return { entradasMes: 0, gastosMes: 0, balanceGeneral: 0, saldos: {} };
+    return { entradasMes: 0, gastosMes: 0, balanceGeneral: 0, saldos: {}, ingresoAcumulado: 0 };
   }
 }
 
 async function getHistoricalRates() {
   try {
     const today = new Date();
-    const past = new Date(today);
-    past.setDate(today.getDate() - 30); // 30 days window
+    // Inicio de año
+    const past = new Date(today.getFullYear(), 0, 1);
     
     const endStr = today.toISOString().split('T')[0];
     const startStr = past.toISOString().split('T')[0];
@@ -71,20 +72,19 @@ async function getHistoricalRates() {
     if (!data.rates) return [];
     
     const chartData = [];
-    const d = new Date();
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     
     const targetDates = [];
-    targetDates.push({ date: new Date(d), label: 'Hoy' });
+    targetDates.push({ date: new Date(today), label: 'Hoy' });
     
-    let lastSunday = new Date(d);
-    lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
+    let curr = new Date(today);
+    // Encontrar el domingo más reciente
+    curr.setDate(curr.getDate() - curr.getDay());
     
-    let sundaysAdded = 0;
-    let curr = new Date(lastSunday);
-    while (sundaysAdded < 3) {
+    // Agregar todos los domingos del año
+    while (curr >= past) {
       if (curr.toDateString() !== today.toDateString()) {
-        targetDates.unshift({ date: new Date(curr), label: `Dom ${curr.getDate()}` });
-        sundaysAdded++;
+        targetDates.unshift({ date: new Date(curr), label: `${curr.getDate()} ${meses[curr.getMonth()]}` });
       }
       curr.setDate(curr.getDate() - 7);
     }
@@ -119,28 +119,32 @@ async function getEntradasHistoricoMes() {
     
     const entradas = await prisma.entrada.findMany({
       where: { fecha: { gte: startOfMonth } },
-      select: { fecha: true, ingreso: true }
+      include: { registros: { include: { otrosRubros: true } }, gastos: true }
     });
 
     const daysInMonth = now.getDate(); // Up to today
     const chartData = [];
     
     // Inicializar el arreglo con 0 para cada día hasta el día de hoy
-    const dailyTotals: Record<number, number> = {};
+    const dailyTotals: Record<number, { ingreso: number, pastor: number }> = {};
     for (let i = 1; i <= daysInMonth; i++) {
-      dailyTotals[i] = 0;
+      dailyTotals[i] = { ingreso: 0, pastor: 0 };
     }
 
-    entradas.forEach(e => {
+    for (const e of entradas) {
       // Extraemos el día usando UTC para evitar desfases si la fecha se guardó en medianoche UTC
       const day = e.fecha.getUTCDate();
       if (day >= 1 && day <= daysInMonth) {
-         dailyTotals[day] += e.ingreso;
+         const dist = await calcularDistribucion(e);
+         const gastosPastor = e.gastos ? e.gastos.filter(g => g.cuenta === 'Pastor').reduce((sum, g) => sum + g.importe, 0) : 0;
+         dailyTotals[day].ingreso += e.ingreso;
+         // Sumamos el neto actual más los gastos ya entregados para obtener el total generado para el Pastor en ese día
+         dailyTotals[day].pastor += (dist.Pastor || 0) + gastosPastor;
       }
-    });
+    }
 
     for (let i = 1; i <= daysInMonth; i++) {
-      chartData.push({ name: i.toString(), total: dailyTotals[i] });
+      chartData.push({ name: i.toString(), total: dailyTotals[i].ingreso, pastor: dailyTotals[i].pastor });
     }
 
     return chartData;
@@ -189,6 +193,10 @@ export default async function DashboardPage() {
             <p className="text-3xl font-bold text-white">{formatCurrency(saldo as number)}</p>
           </div>
         ))}
+        <div className="glass-panel p-8">
+          <h3 className="text-gray-400 mb-2">Efectivo Disponible</h3>
+          <p className="text-3xl font-bold text-white">{formatCurrency(stats.ingresoAcumulado)}</p>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>

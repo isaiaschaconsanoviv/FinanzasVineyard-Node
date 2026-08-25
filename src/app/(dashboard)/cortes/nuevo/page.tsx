@@ -28,7 +28,10 @@ export default function NuevoCortePage() {
         const data = await res.json();
         
         // Transformar objeto en array de Cuentas, ordenando alfabéticamente
-        const cuentasArray = Object.keys(data).sort().map(key => ({
+        const cuentasArray = Object.keys(data)
+          .filter(key => key !== 'Pastor')
+          .sort()
+          .map(key => ({
           concepto: key,
           saldoSistema: data[key],
           saldoFisico: "",

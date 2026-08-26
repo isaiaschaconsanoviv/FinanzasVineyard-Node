@@ -37,7 +37,7 @@ export default function EntradasChart({ data }: { data: any[] }) {
           />
           <Tooltip 
             contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }}
-            formatter={(value: any, name: string) => [
+            formatter={(value: any, name: any) => [
               new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(value)), 
               name === 'total' ? 'Ingreso General' : 'Pastor'
             ]}

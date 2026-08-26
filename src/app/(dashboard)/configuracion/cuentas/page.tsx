@@ -97,7 +97,7 @@ export default function CuentasPage() {
           <Link href="/configuracion" className="btn btn-dark" style={{ padding: '0.5rem' }}>
             <ArrowLeft size={18} />
           </Link>
-          <h1 className="text-3xl font-bold">Cuentas Personalizadas</h1>
+          <h1 className="text-3xl font-bold">Cuentas</h1>
         </div>
         <button 
           className="btn btn-primary" 

@@ -72,7 +72,7 @@ export default function ConfiguracionPage() {
         <div style={{ display: 'flex', gap: '1rem' }}>
           <Link href="/configuracion/cuentas" className="btn btn-dark" style={{ gap: '0.5rem' }}>
             <Beaker size={18} />
-            Cuentas Especiales
+            Cuentas
           </Link>
           <button 
             className="btn btn-secondary" 

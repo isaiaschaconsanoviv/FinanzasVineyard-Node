@@ -72,7 +72,7 @@ export function Sidebar({ userName, userRole }: { userName: string, userRole?: s
               </Link>
               <Link href="/configuracion/cuentas" className="nav-link" onClick={closeMenu}>
                 <Briefcase size={18} />
-                <span>Cuentas Especiales</span>
+                <span>Cuentas</span>
               </Link>
               <Link href="/usuarios" className="nav-link" onClick={closeMenu}>
                 <Users size={18} />

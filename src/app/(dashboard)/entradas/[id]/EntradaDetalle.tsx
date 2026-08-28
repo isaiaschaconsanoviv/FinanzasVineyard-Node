@@ -22,6 +22,10 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
   const [registroToEdit, setRegistroToEdit] = useState<any>(null);
   const [tcLocal, setTcLocal] = useState(entrada.tipoCambio.toString());
   const [isEditingTc, setIsEditingTc] = useState(false);
+  const [diferenciaLocal, setDiferenciaLocal] = useState((entrada.diferencia || 0).toString());
+  const [isEditingDiferencia, setIsEditingDiferencia] = useState(false);
+  const [notasLocal, setNotasLocal] = useState(entrada.notas || "");
+  const [isNotasModalOpen, setIsNotasModalOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, idToDelete: string | null, type: 'registro' | 'gasto' | 'entrada'}>({ isOpen: false, idToDelete: null, type: 'registro' });
   const [viewerModal, setViewerModal] = useState<{ isOpen: boolean, fileUrl: string | null }>({ isOpen: false, fileUrl: null });
   const [otros, setOtros] = useState<{ id: number, tipo: string, importe: string, moneda: string }[]>([]);
@@ -158,6 +162,10 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
   totalfinalpastor -= gastosPastor;
   ingreso -= gastosIngreso;
 
+  if (entrada.diferencia) {
+    ingreso += entrada.diferencia;
+  }
+
   // Agrupar Otros Rubros
   const otrosAgrupados: { [key: string]: { mxn: number, usd: number } } = {};
   entrada.registros.forEach((r: any) => {
@@ -288,6 +296,40 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
     }
   };
 
+  const handleSaveNotas = async () => {
+    try {
+      await fetch(`/api/entradas/${entrada.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notas: notasLocal })
+      });
+      setIsNotasModalOpen(false);
+      router.refresh();
+    } catch (e) {
+      console.error("Error al actualizar notas", e);
+    }
+  };
+
+  const handleDiferenciaBlur = async () => {
+    setIsEditingDiferencia(false);
+    const newDif = parseFloat(diferenciaLocal);
+    if (isNaN(newDif) || newDif === entrada.diferencia) {
+      setDiferenciaLocal((entrada.diferencia || 0).toString());
+      return;
+    }
+    
+    try {
+      await fetch(`/api/entradas/${entrada.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ diferencia: newDif })
+      });
+      router.refresh();
+    } catch (e) {
+      console.error("Error al actualizar diferencia", e);
+    }
+  };
+
   const handleShareWhatsApp = () => {
     const fechaFormat = new Date(entrada.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     
@@ -331,6 +373,10 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
     if (t5peventos > 0) text += `- Eventos (5%): ${formatearMonto(t5peventos)}\n`;
     if (totalfinalpastor > 0) text += `- Pastor: ${formatearMonto(totalfinalpastor)}\n`;
     
+    if (entrada.diferencia) {
+      text += `\n*Diferencia:* ${entrada.diferencia > 0 ? '+' : ''}${formatearMonto(entrada.diferencia)}\n`;
+    }
+    
     text += `\n${emojiFondo} *Ingreso Neto:* ${formatearMonto(ingreso)}\n`;
 
     const url = `https://api.whatsapp.com/send/?text=${encodeURIComponent(text)}`;
@@ -340,11 +386,11 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
   return (
     <div className="animate-fade-in pb-12">
       <div className="page-header" style={{ marginBottom: '2rem', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <Link href="/entradas" className="btn btn-dark" style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', flex: 1 }}>
+          <Link href="/entradas" className="btn btn-dark" style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', marginTop: '0.25rem' }}>
             <ChevronLeft size={24} />
           </Link>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1, minWidth: '300px' }}>
             <h1 className="text-3xl font-bold" style={{ textTransform: 'capitalize', lineHeight: '1.2' }}>
               {new Date(entrada.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </h1>
@@ -368,6 +414,37 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                 </span>
               )}
               | Elaborado por: {entrada.elaboradoPor}
+            </div>
+            
+            <div style={{ marginTop: '0.5rem', width: '100%' }}>
+              {entrada.notas && (
+                <div style={{ 
+                  padding: '0.5rem 0',
+                  color: 'var(--text-secondary)',
+                  whiteSpace: 'pre-wrap',
+                  fontSize: '0.95rem'
+                }}>
+                  {entrada.notas}
+                </div>
+              )}
+              <button 
+                onClick={() => {
+                  setNotasLocal(entrada.notas || "");
+                  setIsNotasModalOpen(true);
+                }} 
+                className="btn-link" 
+                style={{ 
+                  color: 'var(--accent-primary)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.25rem',
+                  fontSize: '0.9rem',
+                  marginTop: entrada.notas ? '0.25rem' : '0'
+                }}
+              >
+                <Edit2 size={14} />
+                {entrada.notas ? "Editar notas" : "Agregar notas"}
+              </button>
             </div>
           </div>
         </div>
@@ -749,6 +826,38 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
 
             <div style={{ margin: '1rem 0', borderTop: '1px dashed rgba(255,255,255,0.2)' }}></div>
 
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Diferencia</span>
+              {isEditingDiferencia ? (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-secondary)', marginRight: '0.5rem' }}>$</span>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={diferenciaLocal} 
+                    onChange={(e) => setDiferenciaLocal(e.target.value)}
+                    onBlur={handleDiferenciaBlur}
+                    autoFocus
+                    className="input-field" 
+                    style={{ width: '100px', height: '32px', textAlign: 'right' }}
+                  />
+                </div>
+              ) : (
+                <span 
+                  onClick={() => setIsEditingDiferencia(true)}
+                  style={{ cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'color 0.2s' }}
+                  title="Editar Diferencia"
+                  onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                  onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+                >
+                  <Edit2 size={16} />
+                  <span className="font-bold text-lg" style={{ color: (entrada.diferencia || 0) < 0 ? 'var(--danger)' : '#eab308' }}>
+                    {(entrada.diferencia || 0) > 0 ? '+' : ''}{formatearMonto(entrada.diferencia || 0)} <small className="font-normal">MXN</small>
+                  </span>
+                </span>
+              )}
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Ingreso</span>
               <span className="font-bold text-xl text-success">{formatearMonto(ingreso)} <small className="font-normal">MXN</small></span>
@@ -796,6 +905,38 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
         fileUrl={viewerModal.fileUrl} 
         onClose={() => setViewerModal({ isOpen: false, fileUrl: null })} 
       />
+
+      {isNotasModalOpen && (
+        <div className="modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000,
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <div className="glass-panel" style={{
+            width: '90%', maxWidth: '500px',
+            padding: '2rem',
+            animation: 'slideUp 0.3s ease-out',
+            position: 'relative'
+          }}>
+            <h2 className="text-xl font-bold mb-4 text-white">Notas de la Entrada</h2>
+            <textarea
+              value={notasLocal}
+              onChange={(e) => setNotasLocal(e.target.value)}
+              className="input-field"
+              style={{ width: '100%', minHeight: '150px', padding: '0.75rem', marginBottom: '1.5rem' }}
+              placeholder="Escribe tus notas aquí..."
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button onClick={() => setIsNotasModalOpen(false)} className="btn btn-secondary">Cancelar</button>
+              <button onClick={handleSaveNotas} className="btn btn-primary">Guardar Notas</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

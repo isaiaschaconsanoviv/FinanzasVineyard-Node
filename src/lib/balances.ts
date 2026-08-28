@@ -111,6 +111,10 @@ export async function calcularDistribucion(entrada: any): Promise<Record<string,
   totalfinalpastor -= gastosPastor;
   aguinaldoPastor -= gastosAguinaldo;
   ingreso -= gastosIngreso;
+  
+  if (entrada.diferencia) {
+    ingreso += entrada.diferencia;
+  }
 
   const distVieja = {
     "10% Diezmo": t10pdiezmo,

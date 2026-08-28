@@ -25,6 +25,7 @@ model Entrada {
   fecha        DateTime   @default(now())
   tipoCambio   Float
   ingreso      Float      @default(0)
+  diferencia   Float      @default(0)
   notas        String?
   elaboradoPor String
   registros    Registro[]

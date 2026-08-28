@@ -124,6 +124,8 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
       where: { id: params.id },
       data: {
         tipoCambio: body.tipoCambio !== undefined ? parseFloat(body.tipoCambio) : undefined,
+        notas: body.notas !== undefined ? body.notas : undefined,
+        diferencia: body.diferencia !== undefined ? parseFloat(body.diferencia) : undefined,
       }
     });
 

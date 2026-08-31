@@ -29,12 +29,21 @@ export const authOptions: NextAuthOptions = {
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
         if (credentials.usuario === 'admin' && credentials.password === 'admin') {
+           await prisma.usuario.update({
+             where: { id: user.id },
+             data: { lastLogin: new Date() }
+           });
            return { id: user.id, name: user.usuario, nombre: user.nombre, rol: user.rol } as any;
         }
 
         if (!isPasswordValid) {
           return null;
         }
+
+        await prisma.usuario.update({
+          where: { id: user.id },
+          data: { lastLogin: new Date() }
+        });
 
         return {
           id: user.id,

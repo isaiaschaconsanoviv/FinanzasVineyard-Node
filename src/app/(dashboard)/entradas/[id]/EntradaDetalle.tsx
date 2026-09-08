@@ -712,16 +712,24 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                         </span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        {g.comprobanteUrl && (
-                          <button 
-                            onClick={() => setViewerModal({ isOpen: true, fileUrl: g.comprobanteUrl })} 
-                            className="btn-link" 
-                            style={{ color: 'var(--accent-primary)' }} 
-                            title="Ver Ticket"
-                          >
-                            <Receipt size={18} />
-                          </button>
-                        )}
+                        {(() => {
+                          const comp = g.comprobantes?.length > 0 ? g.comprobantes : [];
+                          return (
+                            <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                              {comp.map((url: string, idx: number) => (
+                                <button 
+                                  key={idx}
+                                  onClick={() => setViewerModal({ isOpen: true, fileUrl: url })} 
+                                  className="btn-link" 
+                                  style={{ color: 'var(--accent-primary)' }} 
+                                  title={`Ver Ticket ${idx + 1}`}
+                                >
+                                  <Receipt size={18} />
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>

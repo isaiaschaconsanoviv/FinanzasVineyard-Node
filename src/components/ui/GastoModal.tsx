@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Select } from './Select';
+import { Trash2, UploadCloud, FileText, Image as ImageIcon } from 'lucide-react';
 
 interface GastoModalProps {
   isOpen: boolean;
@@ -15,7 +16,8 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
   const [concepto, setConcepto] = useState('');
   const [importe, setImporte] = useState('');
   const [pagado, setPagado] = useState(true);
-  const [file, setFile] = useState<File | null>(null);
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
+  const [existingComprobantes, setExistingComprobantes] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -39,12 +41,16 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
         setConcepto(gastoToEdit.concepto);
         setImporte(gastoToEdit.importe.toString());
         setPagado(gastoToEdit.pagado ?? true);
+        const existing = gastoToEdit.comprobantes || [];
+        setExistingComprobantes(existing);
+        setFilesToUpload([]);
       } else {
         setCuenta('Ingreso');
         setConcepto('');
         setImporte('');
         setPagado(true);
-        setFile(null);
+        setExistingComprobantes([]);
+        setFilesToUpload([]);
       }
       setError('');
       setSuccess(false);
@@ -66,21 +72,25 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
       const url = isEditing ? `/api/gastos/${gastoToEdit.id}` : '/api/gastos';
       const method = isEditing ? 'PATCH' : 'POST';
 
-      let comprobanteUrl = null;
+      let finalComprobantes = [...existingComprobantes];
 
-      if (file) {
+      if (filesToUpload.length > 0) {
         const uploadData = new FormData();
-        uploadData.append("file", file);
+        filesToUpload.forEach(f => uploadData.append("files", f));
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: uploadData,
         });
 
         if (!uploadRes.ok) {
-          throw new Error("Error al subir el comprobante");
+          throw new Error("Error al subir los comprobantes");
         }
         const uploadJson = await uploadRes.json();
-        comprobanteUrl = uploadJson.url;
+        if (uploadJson.urls) {
+          finalComprobantes = [...finalComprobantes, ...uploadJson.urls];
+        } else if (uploadJson.url) {
+          finalComprobantes.push(uploadJson.url); // Fallback
+        }
       }
 
       const res = await fetch(url, {
@@ -92,7 +102,7 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
           concepto,
           importe: parseFloat(importe),
           pagado,
-          comprobanteUrl: comprobanteUrl || undefined,
+          comprobantes: finalComprobantes,
           ...(entradaId && !isEditing ? { entradaId } : {})
         })
       });
@@ -193,15 +203,51 @@ export function GastoModal({ isOpen, onClose, fechaPredefinida, entradaId, gasto
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-300">Comprobante (Opcional)</label>
+              <label className="block text-sm font-medium mb-3 text-gray-300">Comprobantes</label>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                {existingComprobantes.map((url, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+                      <FileText size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                      <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>Comprobante guardado {idx + 1}</span>
+                    </div>
+                    <button type="button" onClick={() => setExistingComprobantes(prev => prev.filter((_, i) => i !== idx))} style={{ color: 'var(--danger)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.25rem', transition: 'all 0.2s' }} className="hover:bg-danger/20" title="Eliminar comprobante">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+
+                {filesToUpload.map((f, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderRadius: '0.5rem', background: 'rgba(139, 92, 246, 0.05)', border: '1px dashed var(--accent-primary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+                      <ImageIcon size={18} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+                      <span className="text-sm truncate" style={{ color: 'var(--accent-primary)', fontWeight: 500 }}>{f.name}</span>
+                    </div>
+                    <button type="button" onClick={() => setFilesToUpload(prev => prev.filter((_, i) => i !== idx))} style={{ color: 'var(--danger)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.25rem', transition: 'all 0.2s' }} className="hover:bg-danger/20" title="Quitar archivo">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
               <input
+                id="file-upload"
                 type="file"
+                multiple
                 accept="image/*,application/pdf"
-                capture="environment"
-                onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                className="input-field w-full"
-                style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)' }}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    const selectedFiles = Array.from(e.target.files);
+                    setFilesToUpload(prev => [...prev, ...selectedFiles]);
+                  }
+                }}
+                style={{ display: 'none' }}
               />
+              <label htmlFor="file-upload" className="btn btn-secondary w-full" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderStyle: 'dashed', cursor: 'pointer' }}>
+                <UploadCloud size={18} />
+                <span>Seleccionar Archivos</span>
+              </label>
             </div>
 
             <div className="mb-6" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>

@@ -18,32 +18,41 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-
-    if (!file) {
-      return NextResponse.json({ error: "No se proporcionó ningún archivo" }, { status: 400 });
+    let files = formData.getAll("files") as File[];
+    
+    if (!files || files.length === 0) {
+      // Fallback para mantener compatibilidad temporal si mandan 'file' en vez de 'files'
+      const singleFile = formData.get("file") as File | null;
+      if (singleFile) {
+        files = [singleFile];
+      } else {
+        return NextResponse.json({ error: "No se proporcionó ningún archivo" }, { status: 400 });
+      }
     }
 
-    // Read file as Buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const urls: string[] = [];
 
-    // Upload to Cloudinary using upload_stream
-    const uploadResult = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "finanzas_tickets", resource_type: "auto", type: "authenticated" },
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        }
-      );
-      uploadStream.end(buffer);
-    });
+    // Subir cada archivo a Cloudinary
+    for (const file of files) {
+      const buffer = Buffer.from(await file.arrayBuffer());
 
-    const url = (uploadResult as any).secure_url;
+      const uploadResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "finanzas_tickets", resource_type: "auto", type: "authenticated" },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        uploadStream.end(buffer);
+      });
 
-    return NextResponse.json({ url });
+      urls.push((uploadResult as any).secure_url);
+    }
+
+    return NextResponse.json({ urls, url: urls[0] }); // Retornamos `url` también por compatibilidad temporal
   } catch (error: any) {
-    console.error("Error uploading file to Cloudinary:", error);
+    console.error("Error uploading files to Cloudinary:", error);
     return NextResponse.json({ error: "Error al subir el archivo" }, { status: 500 });
   }
 }

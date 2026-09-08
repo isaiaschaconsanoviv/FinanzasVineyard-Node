@@ -53,7 +53,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
 
     const { id } = params;
     const body = await req.json();
-    const { cuenta, concepto, importe, pagado } = body;
+    const { cuenta, concepto, importe, pagado, comprobantes } = body;
 
     const gastoExistente = await prisma.gasto.findUnique({ where: { id } });
     if (!gastoExistente) {
@@ -77,6 +77,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
         ...(concepto ? { concepto } : {}),
         ...(importe !== undefined ? { importe: parseFloat(importe) } : {}),
         ...(pagado !== undefined ? { pagado: Boolean(pagado) } : {}),
+        ...(comprobantes ? { comprobantes } : {}),
       }
     });
 
@@ -116,8 +117,15 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
       return NextResponse.json({ error: e.message }, { status: 400 });
     }
 
-    if (gastoExistente.comprobanteUrl) {
-      const details = extractCloudinaryDetails(gastoExistente.comprobanteUrl);
+    // Recopilar todos los URLs a eliminar (evitando duplicados)
+    const urlsToDelete = new Set<string>();
+    if (gastoExistente.comprobantes && gastoExistente.comprobantes.length > 0) {
+      gastoExistente.comprobantes.forEach(url => urlsToDelete.add(url));
+    }
+
+    // Eliminar de Cloudinary
+    for (const url of urlsToDelete) {
+      const details = extractCloudinaryDetails(url);
       if (details) {
         await cloudinary.uploader.destroy(details.publicId, {
           resource_type: details.resourceType,

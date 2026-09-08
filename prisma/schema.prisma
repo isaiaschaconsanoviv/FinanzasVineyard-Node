@@ -62,7 +62,7 @@ model Gasto {
   concepto     String
   importe      Float
   elaboradoPor String
-  comprobanteUrl String?
+  comprobantes   String[] @default([])
   pagado       Boolean  @default(true)
 }
 

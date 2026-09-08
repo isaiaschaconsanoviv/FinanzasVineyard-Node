@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { fecha, cuenta, concepto, importe, elaboradoPor, entradaId, comprobanteUrl, pagado } = body;
+    const { fecha, cuenta, concepto, importe, elaboradoPor, entradaId, comprobantes, pagado } = body;
 
     const nombreUsuario = elaboradoPor || (session.user as any)?.name || "Administrador";
 
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         concepto,
         importe: parseFloat(importe),
         elaboradoPor: nombreUsuario,
-        comprobanteUrl: comprobanteUrl || null,
+        comprobantes: comprobantes || [],
         pagado: pagado !== undefined ? Boolean(pagado) : true,
         ...(entradaId ? { entradaId } : {})
       }

@@ -1,6 +1,7 @@
-import { DollarSign, TrendingUp } from "lucide-react";
+import { DollarSign, TrendingUp, BarChart2 } from "lucide-react";
 import ExchangeRateChart from "./ExchangeRateChart";
 import EntradasChart from "./EntradasChart";
+import EvolucionChart from "./EvolucionChart";
 import { PrismaClient } from "@prisma/client";
 import { calcularSaldosActuales, calcularDistribucion } from "@/lib/balances";
 
@@ -154,11 +155,81 @@ async function getEntradasHistoricoMes() {
   }
 }
 
+async function getEvolucionSaldosUltimos30Dias(saldoActual: number) {
+  try {
+    const today = new Date();
+    const past30 = new Date(today);
+    past30.setDate(today.getDate() - 30);
+
+    const entradas = await prisma.entrada.findMany({
+      where: { fecha: { gte: past30 } },
+      include: { registros: { include: { otrosRubros: true } }, gastos: true }
+    });
+
+    const gastos = await prisma.gasto.findMany({
+      where: { 
+        fecha: { gte: past30 },
+        OR: [ { entradaId: null }, { entradaId: { isSet: false } } ]
+      }
+    });
+
+    const customAccounts = await prisma.cuentaPersonalizada.findMany();
+    const customAccountNames = customAccounts.map(c => c.nombre);
+    const cuentasReservadas = ["10% Diezmo", "3% Viña Nacional", "Misiones (10%)", "Eventos (5%)", "Aguinaldo Pastor", "Ingreso", "Misiones"];
+
+    const netChangesByDay: Record<string, number> = {};
+
+    for (const entrada of entradas) {
+      const dist = await calcularDistribucion(entrada);
+      let diff = (dist["Ingreso"] || 0);
+      const key = `${entrada.fecha.getDate()}/${entrada.fecha.getMonth() + 1}`;
+      if (!netChangesByDay[key]) netChangesByDay[key] = 0;
+      netChangesByDay[key] += diff;
+    }
+
+    for (const gasto of gastos) {
+      let diff = 0;
+      if (!cuentasReservadas.includes(gasto.cuenta) && !customAccountNames.includes(gasto.cuenta)) {
+        diff = -gasto.importe;
+      } else if (gasto.cuenta === "Ingreso") {
+        diff = -gasto.importe;
+      }
+      
+      if (diff !== 0) {
+        const key = `${gasto.fecha.getDate()}/${gasto.fecha.getMonth() + 1}`;
+        if (!netChangesByDay[key]) netChangesByDay[key] = 0;
+        netChangesByDay[key] += diff;
+      }
+    }
+
+    const chartData = [];
+    let runningBalance = saldoActual;
+
+    for (let i = 0; i <= 29; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = `${d.getDate()}/${d.getMonth() + 1}`;
+      
+      chartData.unshift({ name: key, balance: runningBalance });
+      
+      if (netChangesByDay[key]) {
+        runningBalance -= netChangesByDay[key];
+      }
+    }
+
+    return chartData;
+  } catch (error) {
+    console.error("Error fetching historico saldos:", error);
+    return [];
+  }
+}
+
 export default async function DashboardPage() {
   const chartData = await getHistoricalRates();
   const entradasChartData = await getEntradasHistoricoMes();
-  const mxnRate = chartData.length > 0 ? chartData[chartData.length - 1].rate : null;
   const stats = await getDashboardStats();
+  const evolucionData = await getEvolucionSaldosUltimos30Dias(stats.ingresoAcumulado);
+  const mxnRate = chartData.length > 0 ? chartData[chartData.length - 1].rate : null;
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
@@ -197,6 +268,20 @@ export default async function DashboardPage() {
           <h3 className="text-gray-400 mb-2">Efectivo Disponible</h3>
           <p className="text-3xl font-bold text-white">{formatCurrency(stats.ingresoAcumulado)}</p>
         </div>
+      </div>
+
+      {/* Gráfica de Evolución Últimos 30 días */}
+      <div className="glass-panel p-8 mb-6" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(0,0,0,0.2))', minWidth: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h3 className="text-gray-400 mb-2">Evolución del Saldo Disponible</h3>
+            <p className="text-2xl font-bold text-white">Últimos 30 días</p>
+          </div>
+          <div style={{ padding: '0.5rem', background: 'rgba(59, 130, 246, 0.2)', borderRadius: '50%', color: '#93c5fd' }}>
+            <BarChart2 size={24} />
+          </div>
+        </div>
+        <EvolucionChart data={evolucionData} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>

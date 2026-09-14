@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { Select } from "@/components/ui/Select";
 import { ArrowLeft, Plus, DollarSign, Target, Calendar, Trash2, Edit2 } from "lucide-react";
 
 export default function ProyectoPromesaPage() {
@@ -25,6 +26,12 @@ export default function ProyectoPromesaPage() {
   const [aportacionForm, setAportacionForm] = useState({
     promesaId: "", cantidad: "", moneda: "MXN", fecha: new Date().toISOString().split('T')[0]
   });
+
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+
+  const toggleRow = (id: string) => {
+    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -152,14 +159,26 @@ export default function ProyectoPromesaPage() {
 
   return (
     <div className="animate-fade-in pb-12">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link href="/promesas" className="btn btn-dark" style={{ padding: '0.5rem' }}>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 768px) {
+          .hide-on-mobile { display: none !important; }
+          .mobile-expanded-row { display: table-row !important; }
+          .clickable-row { cursor: pointer; }
+          .mobile-only-icon { display: inline-block !important; }
+        }
+        @media (min-width: 769px) {
+          .mobile-expanded-row { display: none !important; }
+          .mobile-only-icon { display: none !important; }
+        }
+      `}} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 min-content' }}>
+          <Link href="/promesas" className="btn btn-dark" style={{ padding: '0.5rem', flexShrink: 0 }}>
             <ArrowLeft size={18} />
           </Link>
-          <h1 className="text-3xl font-bold">{proyecto.nombre}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold" style={{ margin: 0, wordBreak: 'break-word' }}>{proyecto.nombre}</h1>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
           <button className="btn btn-dark" onClick={() => setIsAportacionModalOpen(true)}>
             <DollarSign size={18} /> Registrar Aportación
           </button>
@@ -204,73 +223,124 @@ export default function ProyectoPromesaPage() {
           <h2 className="text-xl font-bold">Promesas Registradas</h2>
         </div>
         
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Persona</th>
-              <th>Prometido</th>
-              <th>Aportado</th>
-              <th>Pendiente</th>
-              <th>Fecha Límite</th>
-              <th style={{ textAlign: 'right' }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {proyecto.promesas?.map((promesa: any) => {
-              let aportadoMXN = 0;
-              let aportadoUSD = 0;
-              promesa.aportaciones?.forEach((a: any) => {
-                if (a.moneda === 'MXN') aportadoMXN += a.cantidad;
-                if (a.moneda === 'USD') aportadoUSD += a.cantidad;
-              });
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Persona</th>
+                <th>Prometido</th>
+                <th>Aportado</th>
+                <th className="hide-on-mobile">Pendiente</th>
+                <th className="hide-on-mobile">Fecha Límite</th>
+                <th className="hide-on-mobile" style={{ textAlign: 'right' }}>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {proyecto.promesas?.map((promesa: any) => {
+                let aportadoMXN = 0;
+                let aportadoUSD = 0;
+                promesa.aportaciones?.forEach((a: any) => {
+                  if (a.moneda === 'MXN') aportadoMXN += a.cantidad;
+                  if (a.moneda === 'USD') aportadoUSD += a.cantidad;
+                });
 
-              return (
-                <tr key={promesa.id}>
-                  <td className="font-bold">{promesa.persona}</td>
-                  <td>
-                    {promesa.cantidadMXN > 0 && <div>${promesa.cantidadMXN.toLocaleString('es-MX')} MXN</div>}
-                    {promesa.cantidadUSD > 0 && <div>${promesa.cantidadUSD.toLocaleString('en-US')} USD</div>}
-                  </td>
-                  <td className="text-success font-semibold">
-                    {aportadoMXN > 0 && <div>${aportadoMXN.toLocaleString('es-MX')} MXN</div>}
-                    {aportadoUSD > 0 && <div>${aportadoUSD.toLocaleString('en-US')} USD</div>}
-                    {aportadoMXN === 0 && aportadoUSD === 0 && <span className="text-gray-500">$0</span>}
-                  </td>
-                  <td className="text-warning">
-                    {(promesa.cantidadMXN - aportadoMXN) > 0 && <div>${(promesa.cantidadMXN - aportadoMXN).toLocaleString('es-MX')} MXN</div>}
-                    {(promesa.cantidadUSD - aportadoUSD) > 0 && <div>${(promesa.cantidadUSD - aportadoUSD).toLocaleString('en-US')} USD</div>}
-                  </td>
-                  <td>
-                    {promesa.fechaLimite ? new Date(promesa.fechaLimite).toLocaleDateString('es-MX', { timeZone: 'UTC' }) : <span className="text-gray-500">Sin límite</span>}
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button 
-                      className="btn btn-dark btn-sm" 
-                      style={{ padding: '0.4rem', marginRight: '0.5rem' }}
-                      onClick={() => openEditPromesaModal(promesa)}
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button 
-                      className="btn btn-danger btn-sm" 
-                      style={{ padding: '0.4rem' }}
-                      onClick={() => handleDeletePromesa(promesa.id)}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                return (
+                  <React.Fragment key={promesa.id}>
+                  <tr className="clickable-row" onClick={() => toggleRow(promesa.id)}>
+                    <td className="font-bold">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span className="mobile-only-icon" style={{ color: 'var(--accent-primary)', fontSize: '0.8rem' }}>
+                          {expandedRows[promesa.id] ? '▲' : '▼'}
+                        </span>
+                        {promesa.persona}
+                      </div>
+                    </td>
+                    <td>
+                      {promesa.cantidadMXN > 0 && <div>${promesa.cantidadMXN.toLocaleString('es-MX')} MXN</div>}
+                      {promesa.cantidadUSD > 0 && <div>${promesa.cantidadUSD.toLocaleString('en-US')} USD</div>}
+                    </td>
+                    <td className="text-success font-semibold">
+                      {aportadoMXN > 0 && <div>${aportadoMXN.toLocaleString('es-MX')} MXN</div>}
+                      {aportadoUSD > 0 && <div>${aportadoUSD.toLocaleString('en-US')} USD</div>}
+                      {aportadoMXN === 0 && aportadoUSD === 0 && <span className="text-gray-500">$0</span>}
+                    </td>
+                    <td className="text-warning hide-on-mobile">
+                      {(promesa.cantidadMXN - aportadoMXN) > 0 && <div>${(promesa.cantidadMXN - aportadoMXN).toLocaleString('es-MX')} MXN</div>}
+                      {(promesa.cantidadUSD - aportadoUSD) > 0 && <div>${(promesa.cantidadUSD - aportadoUSD).toLocaleString('en-US')} USD</div>}
+                    </td>
+                    <td className="hide-on-mobile">
+                      {promesa.fechaLimite ? new Date(promesa.fechaLimite).toLocaleDateString('es-MX', { timeZone: 'UTC' }) : <span className="text-gray-500">Sin límite</span>}
+                    </td>
+                    <td className="hide-on-mobile" style={{ textAlign: 'right' }}>
+                      <button 
+                        className="btn btn-dark btn-sm" 
+                        style={{ padding: '0.4rem', marginRight: '0.5rem' }}
+                        onClick={(e) => { e.stopPropagation(); openEditPromesaModal(promesa); }}
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
+                        className="btn btn-danger btn-sm" 
+                        style={{ padding: '0.4rem' }}
+                        onClick={(e) => { e.stopPropagation(); handleDeletePromesa(promesa.id); }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                  
+                  {/* Fila expandida para celular */}
+                  {expandedRows[promesa.id] && (
+                    <tr className="mobile-expanded-row" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                      <td colSpan={3} style={{ padding: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span className="text-gray-400 text-sm">Pendiente:</span>
+                            <span className="text-warning font-bold">
+                              {(promesa.cantidadMXN - aportadoMXN) > 0 && <div>${(promesa.cantidadMXN - aportadoMXN).toLocaleString('es-MX')} MXN</div>}
+                              {(promesa.cantidadUSD - aportadoUSD) > 0 && <div>${(promesa.cantidadUSD - aportadoUSD).toLocaleString('en-US')} USD</div>}
+                              {(promesa.cantidadMXN - aportadoMXN) === 0 && (promesa.cantidadUSD - aportadoUSD) === 0 && <span>$0</span>}
+                            </span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span className="text-gray-400 text-sm">Fecha Límite:</span>
+                            <span>{promesa.fechaLimite ? new Date(promesa.fechaLimite).toLocaleDateString('es-MX', { timeZone: 'UTC' }) : <span className="text-gray-500">Sin límite</span>}</span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                            <button 
+                              className="btn btn-dark btn-sm flex-1" 
+                              style={{ padding: '0.5rem', justifyContent: 'center' }}
+                              onClick={() => openEditPromesaModal(promesa)}
+                            >
+                              <Edit2 size={16} style={{ marginRight: '0.25rem' }} /> Editar
+                            </button>
+                            <button 
+                              className="btn btn-danger btn-sm flex-1" 
+                              style={{ padding: '0.5rem', justifyContent: 'center' }}
+                              onClick={() => handleDeletePromesa(promesa.id)}
+                            >
+                              <Trash2 size={16} style={{ marginRight: '0.25rem' }} /> Eliminar
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+                );
+              })}
+              {(!proyecto.promesas || proyecto.promesas.length === 0) && (
+                <tr>
+                  <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    Aún no hay promesas registradas en este proyecto.
                   </td>
                 </tr>
-              );
-            })}
-            {(!proyecto.promesas || proyecto.promesas.length === 0) && (
-              <tr>
-                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  Aún no hay promesas registradas en este proyecto.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal Nueva Promesa */}
@@ -335,14 +405,19 @@ export default function ProyectoPromesaPage() {
             <form onSubmit={handleSaveAportacion} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="input-group">
                 <label>Promesa de...</label>
-                <select className="input-field" required
-                  value={aportacionForm.promesaId} onChange={e => setAportacionForm({...aportacionForm, promesaId: e.target.value})}
-                >
-                  <option value="">-- Selecciona una promesa --</option>
-                  {proyecto.promesas?.map((p: any) => (
-                    <option key={p.id} value={p.id}>{p.persona}</option>
-                  ))}
-                </select>
+                <Select
+                  id="promesaId"
+                  name="promesaId"
+                  required
+                  value={aportacionForm.promesaId}
+                  onChange={e => setAportacionForm({...aportacionForm, promesaId: e.target.value})}
+                  options={
+                    proyecto.promesas?.map((p: any) => ({
+                      value: p.id,
+                      label: p.persona
+                    })) || []
+                  }
+                />
               </div>
               <div className="input-group">
                 <label>Cantidad</label>
@@ -352,12 +427,17 @@ export default function ProyectoPromesaPage() {
               </div>
               <div className="input-group">
                 <label>Moneda</label>
-                <select className="input-field" required
-                  value={aportacionForm.moneda} onChange={e => setAportacionForm({...aportacionForm, moneda: e.target.value})}
-                >
-                  <option value="MXN">Pesos (MXN)</option>
-                  <option value="USD">Dólares (USD)</option>
-                </select>
+                <Select
+                  id="moneda"
+                  name="moneda"
+                  required
+                  value={aportacionForm.moneda}
+                  onChange={e => setAportacionForm({...aportacionForm, moneda: e.target.value})}
+                  options={[
+                    { value: "MXN", label: "Pesos (MXN)" },
+                    { value: "USD", label: "Dólares (USD)" }
+                  ]}
+                />
               </div>
               <div className="input-group">
                 <label>Fecha de Aportación</label>

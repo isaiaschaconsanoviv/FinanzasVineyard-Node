@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import EntradasTable from "./EntradasTable";
 
 const prisma = new PrismaClient();
 
@@ -24,43 +25,7 @@ export default async function EntradasPage() {
         </Link>
       </div>
 
-      <div className="glass-panel" style={{ overflowX: 'auto' }}>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Fecha del Servicio</th>
-              <th style={{ textAlign: 'right' }}>Tasa de Cambio</th>
-              <th>Elaborado Por</th>
-              <th style={{ textAlign: 'right' }}>Ingreso Neto</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {entradas.map((entrada) => {
-              return (
-                <tr key={entrada.id}>
-                  <td style={{ fontWeight: 500 }}>{new Date(entrada.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                  <td style={{ textAlign: 'right' }}>${entrada.tipoCambio.toFixed(2)}</td>
-                  <td>{entrada.elaboradoPor}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }} className="text-success">
-                    ${entrada.ingreso.toFixed(2)} MXN
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <Link href={`/entradas/${entrada.id}`} className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>Ver / Editar</Link>
-                  </td>
-                </tr>
-              );
-            })}
-            {entradas.length === 0 && (
-              <tr>
-                <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  No hay entradas registradas. Presiona "Nueva Entrada" para comenzar.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <EntradasTable entradas={entradas} />
     </div>
   );
 }

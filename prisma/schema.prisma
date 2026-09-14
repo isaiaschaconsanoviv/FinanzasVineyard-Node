@@ -30,6 +30,7 @@ model Entrada {
   elaboradoPor String
   registros    Registro[]
   gastos       Gasto[]
+  aportacionesPromesa AportacionPromesa[]
 }
 
 model Registro {
@@ -102,4 +103,41 @@ model CuentaPersonalizada {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   nombre    String   @unique
   activa    Boolean  @default(true)
+  proyectos ProyectoPromesa[]
+}
+
+model ProyectoPromesa {
+  id                String               @id @default(auto()) @map("_id") @db.ObjectId
+  nombre            String
+  descripcion       String?
+  fechaInicio       DateTime             @default(now())
+  fechaFinTentativa DateTime?
+  meta              Float?
+  activo            Boolean              @default(true)
+  cuentaId          String               @db.ObjectId
+  cuenta            CuentaPersonalizada  @relation(fields: [cuentaId], references: [id])
+  promesas          Promesa[]
+}
+
+model Promesa {
+  id              String               @id @default(auto()) @map("_id") @db.ObjectId
+  proyectoId      String               @db.ObjectId
+  proyecto        ProyectoPromesa      @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  persona         String
+  cantidadMXN     Float                @default(0)
+  cantidadUSD     Float                @default(0)
+  fechaLimite     DateTime?
+  notas           String?
+  aportaciones    AportacionPromesa[]
+}
+
+model AportacionPromesa {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  promesaId   String    @db.ObjectId
+  promesa     Promesa   @relation(fields: [promesaId], references: [id], onDelete: Cascade)
+  cantidad    Float
+  moneda      String    // "MXN" o "USD"
+  fecha       DateTime  @default(now())
+  entradaId   String?   @db.ObjectId
+  entrada     Entrada?  @relation(fields: [entradaId], references: [id], onDelete: SetNull)
 }

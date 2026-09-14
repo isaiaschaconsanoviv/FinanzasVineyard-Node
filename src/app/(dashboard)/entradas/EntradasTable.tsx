@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-export default function EntradasTable({ entradas }: { entradas: any[] }) {
+export default function EntradasTable({ entradas, isReadOnly }: { entradas: any[], isReadOnly?: boolean }) {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
   const toggleRow = (id: string) => {
@@ -55,7 +55,9 @@ export default function EntradasTable({ entradas }: { entradas: any[] }) {
                     </td>
                     <td className="hide-on-mobile">{entrada.elaboradoPor}</td>
                     <td className="hide-on-mobile" style={{ textAlign: 'right' }}>
-                      <Link href={`/entradas/${entrada.id}`} onClick={e => e.stopPropagation()} className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>Ver / Editar</Link>
+                      <Link href={`/entradas/${entrada.id}`} onClick={e => e.stopPropagation()} className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>
+                        {isReadOnly ? "Ver" : "Ver / Editar"}
+                      </Link>
                     </td>
                   </tr>
                   {isExpanded && (
@@ -69,7 +71,7 @@ export default function EntradasTable({ entradas }: { entradas: any[] }) {
                           
                           <div style={{ display: 'flex', marginTop: '0.5rem' }}>
                             <Link href={`/entradas/${entrada.id}`} className="btn btn-primary btn-sm flex-1" style={{ padding: '0.5rem', justifyContent: 'center', textAlign: 'center' }}>
-                              Ver / Editar
+                              {isReadOnly ? "Ver" : "Ver / Editar"}
                             </Link>
                           </div>
                         </div>

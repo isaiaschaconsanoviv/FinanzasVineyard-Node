@@ -11,6 +11,9 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
     const params = await props.params;
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if ((session.user as any)?.rol === "READONLY") {
+      return NextResponse.json({ error: "Permisos insuficientes" }, { status: 403 });
+    }
 
     await prisma.registro.delete({
       where: { id: params.registroId }
@@ -29,6 +32,9 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string,
     const params = await props.params;
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if ((session.user as any)?.rol === "READONLY") {
+      return NextResponse.json({ error: "Permisos insuficientes" }, { status: 403 });
+    }
 
     const body = await req.json();
     const { nombre, diezmo, monedaDiezmo, ofrenda, monedaOfrenda, otros } = body;

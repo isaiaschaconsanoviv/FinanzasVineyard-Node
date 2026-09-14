@@ -6,10 +6,13 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Select } from "@/components/ui/Select";
 import { ArrowLeft, Plus, DollarSign, Target, Calendar, Trash2, Edit2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export default function ProyectoPromesaPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
+  const isReadOnly = (session?.user as any)?.rol === "READONLY";
   
   const [proyecto, setProyecto] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -179,12 +182,16 @@ export default function ProyectoPromesaPage() {
           <h1 className="text-2xl md:text-3xl font-bold" style={{ margin: 0, wordBreak: 'break-word' }}>{proyecto.nombre}</h1>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <button className="btn btn-dark" onClick={() => setIsAportacionModalOpen(true)}>
-            <DollarSign size={18} /> Registrar Aportación
-          </button>
-          <button className="btn btn-primary" onClick={openNewPromesaModal}>
-            <Plus size={18} /> Nueva Promesa
-          </button>
+          {!isReadOnly && (
+            <>
+              <button className="btn btn-dark" onClick={() => setIsAportacionModalOpen(true)}>
+                <DollarSign size={18} /> Registrar Aportación
+              </button>
+              <button className="btn btn-primary" onClick={openNewPromesaModal}>
+                <Plus size={18} /> Nueva Promesa
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -232,7 +239,7 @@ export default function ProyectoPromesaPage() {
                 <th>Aportado</th>
                 <th className="hide-on-mobile">Pendiente</th>
                 <th className="hide-on-mobile">Fecha Límite</th>
-                <th className="hide-on-mobile" style={{ textAlign: 'right' }}>Acciones</th>
+                {!isReadOnly && <th className="hide-on-mobile" style={{ textAlign: 'right' }}>Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -271,22 +278,24 @@ export default function ProyectoPromesaPage() {
                     <td className="hide-on-mobile">
                       {promesa.fechaLimite ? new Date(promesa.fechaLimite).toLocaleDateString('es-MX', { timeZone: 'UTC' }) : <span className="text-gray-500">Sin límite</span>}
                     </td>
-                    <td className="hide-on-mobile" style={{ textAlign: 'right' }}>
-                      <button 
-                        className="btn btn-dark btn-sm" 
-                        style={{ padding: '0.4rem', marginRight: '0.5rem' }}
-                        onClick={(e) => { e.stopPropagation(); openEditPromesaModal(promesa); }}
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button 
-                        className="btn btn-danger btn-sm" 
-                        style={{ padding: '0.4rem' }}
-                        onClick={(e) => { e.stopPropagation(); handleDeletePromesa(promesa.id); }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+                    {!isReadOnly && (
+                      <td className="hide-on-mobile" style={{ textAlign: 'right' }}>
+                        <button 
+                          className="btn btn-dark btn-sm" 
+                          style={{ padding: '0.4rem', marginRight: '0.5rem' }}
+                          onClick={(e) => { e.stopPropagation(); openEditPromesaModal(promesa); }}
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          className="btn btn-danger btn-sm" 
+                          style={{ padding: '0.4rem' }}
+                          onClick={(e) => { e.stopPropagation(); handleDeletePromesa(promesa.id); }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                   
                   {/* Fila expandida para celular */}
@@ -308,22 +317,24 @@ export default function ProyectoPromesaPage() {
                             <span>{promesa.fechaLimite ? new Date(promesa.fechaLimite).toLocaleDateString('es-MX', { timeZone: 'UTC' }) : <span className="text-gray-500">Sin límite</span>}</span>
                           </div>
                           
-                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                            <button 
-                              className="btn btn-dark btn-sm flex-1" 
-                              style={{ padding: '0.5rem', justifyContent: 'center' }}
-                              onClick={() => openEditPromesaModal(promesa)}
-                            >
-                              <Edit2 size={16} style={{ marginRight: '0.25rem' }} /> Editar
-                            </button>
-                            <button 
-                              className="btn btn-danger btn-sm flex-1" 
-                              style={{ padding: '0.5rem', justifyContent: 'center' }}
-                              onClick={() => handleDeletePromesa(promesa.id)}
-                            >
-                              <Trash2 size={16} style={{ marginRight: '0.25rem' }} /> Eliminar
-                            </button>
-                          </div>
+                          {!isReadOnly && (
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                              <button 
+                                className="btn btn-dark btn-sm flex-1" 
+                                style={{ padding: '0.5rem', justifyContent: 'center' }}
+                                onClick={() => openEditPromesaModal(promesa)}
+                              >
+                                <Edit2 size={16} style={{ marginRight: '0.25rem' }} /> Editar
+                              </button>
+                              <button 
+                                className="btn btn-danger btn-sm flex-1" 
+                                style={{ padding: '0.5rem', justifyContent: 'center' }}
+                                onClick={() => handleDeletePromesa(promesa.id)}
+                              >
+                                <Trash2 size={16} style={{ marginRight: '0.25rem' }} /> Eliminar
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -361,14 +372,14 @@ export default function ProyectoPromesaPage() {
                   value={promesaForm.persona} onChange={e => setPromesaForm({...promesaForm, persona: e.target.value})} 
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="input-group">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                <div className="input-group" style={{ flex: '1 1 120px' }}>
                   <label>Cantidad (MXN)</label>
                   <input type="number" className="input-field" 
                     value={promesaForm.cantidadMXN} onChange={e => setPromesaForm({...promesaForm, cantidadMXN: e.target.value})} 
                   />
                 </div>
-                <div className="input-group">
+                <div className="input-group" style={{ flex: '1 1 120px' }}>
                   <label>Cantidad (USD)</label>
                   <input type="number" className="input-field" 
                     value={promesaForm.cantidadUSD} onChange={e => setPromesaForm({...promesaForm, cantidadUSD: e.target.value})} 

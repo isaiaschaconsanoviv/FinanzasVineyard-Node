@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Calculator } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface Cuenta {
   concepto: string;
@@ -14,11 +15,19 @@ interface Cuenta {
 
 export default function NuevoCortePage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isReadOnly = (session?.user as any)?.rol === "READONLY";
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]);
   const [notas, setNotas] = useState("");
+
+  useEffect(() => {
+    if (isReadOnly) {
+      router.push('/cortes');
+    }
+  }, [isReadOnly, router]);
 
   useEffect(() => {
     const fetchSaldos = async () => {

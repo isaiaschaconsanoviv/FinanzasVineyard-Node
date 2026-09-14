@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Plus, Target, ArrowRight } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export default function PromesasPage() {
+  const { data: session } = useSession();
+  const isReadOnly = (session?.user as any)?.rol === "READONLY";
   const [proyectos, setProyectos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,14 +109,16 @@ export default function PromesasPage() {
           <Target size={28} className="text-accent-primary" />
           Promesas
         </h1>
-        <button 
-          className="btn btn-primary" 
-          style={{ gap: '0.5rem' }}
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Plus size={18} />
-          Nuevo Proyecto
-        </button>
+        {!isReadOnly && (
+          <button 
+            className="btn btn-primary" 
+            style={{ gap: '0.5rem' }}
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Plus size={18} />
+            Nuevo Proyecto
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>

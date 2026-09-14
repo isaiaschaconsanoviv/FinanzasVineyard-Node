@@ -11,7 +11,7 @@ import { GastoModal } from "@/components/ui/GastoModal";
 import { RegistroModal } from "@/components/ui/RegistroModal";
 import { FileViewerModal } from "@/components/ui/FileViewerModal";
 
-export default function EntradaDetalle({ entrada }: { entrada: any }) {
+export default function EntradaDetalle({ entrada, isReadOnly }: { entrada: any, isReadOnly?: boolean }) {
   const router = useRouter();
   
   const [loading, setLoading] = useState(false);
@@ -410,7 +410,9 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
               ) : (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   <span className="text-accent-primary font-bold">${entrada.tipoCambio}</span>
-                  <button onClick={() => setIsEditingTc(true)} className="btn-link" title="Editar" style={{ color: 'var(--text-secondary)' }}><Edit2 size={14} /></button>
+                  {!isReadOnly && (
+                    <button onClick={() => setIsEditingTc(true)} className="btn-link" title="Editar" style={{ color: 'var(--text-secondary)' }}><Edit2 size={14} /></button>
+                  )}
                 </span>
               )}
               | Elaborado por: {entrada.elaboradoPor}
@@ -427,40 +429,46 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                   {entrada.notas}
                 </div>
               )}
-              <button 
-                onClick={() => {
-                  setNotasLocal(entrada.notas || "");
-                  setIsNotasModalOpen(true);
-                }} 
-                className="btn-link" 
-                style={{ 
-                  color: 'var(--accent-primary)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.25rem',
-                  fontSize: '0.9rem',
-                  marginTop: entrada.notas ? '0.25rem' : '0'
-                }}
-              >
-                <Edit2 size={14} />
-                {entrada.notas ? "Editar notas" : "Agregar notas"}
-              </button>
+              {!isReadOnly && (
+                <button 
+                  onClick={() => {
+                    setNotasLocal(entrada.notas || "");
+                    setIsNotasModalOpen(true);
+                  }} 
+                  className="btn-link" 
+                  style={{ 
+                    color: 'var(--accent-primary)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.25rem',
+                    fontSize: '0.9rem',
+                    marginTop: entrada.notas ? '0.25rem' : '0'
+                  }}
+                >
+                  <Edit2 size={14} />
+                  {entrada.notas ? "Editar notas" : "Agregar notas"}
+                </button>
+              )}
             </div>
           </div>
         </div>
         <div className="header-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-          <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: entrada.id, type: 'entrada' })} className="btn btn-secondary" style={{ gap: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}>
-            <Trash2 size={18} />
-            Eliminar Entrada
-          </button>
+          {!isReadOnly && (
+            <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: entrada.id, type: 'entrada' })} className="btn btn-secondary" style={{ gap: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}>
+              <Trash2 size={18} />
+              Eliminar Entrada
+            </button>
+          )}
           <button onClick={handleShareWhatsApp} className="btn btn-secondary" style={{ gap: '0.5rem', backgroundColor: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', borderColor: 'rgba(34, 197, 94, 0.3)' }}>
             <Share2 size={18} />
             Compartir
           </button>
-          <button onClick={() => openGastoModal()} className="btn btn-secondary" style={{ gap: '0.5rem', backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
-            <Receipt size={18} />
-            Registrar Gasto
-          </button>
+          {!isReadOnly && (
+            <button onClick={() => openGastoModal()} className="btn btn-secondary" style={{ gap: '0.5rem', backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
+              <Receipt size={18} />
+              Registrar Gasto
+            </button>
+          )}
         </div>
       </div>
 
@@ -468,8 +476,9 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
         
         {/* Lado Izquierdo: Formulario y Tabla */}
         <div>
-          <form onSubmit={handleSubmit} className="glass-panel p-8 mb-8">
-            <datalist id="nombres-list">
+          {!isReadOnly && (
+            <form onSubmit={handleSubmit} className="glass-panel p-8 mb-8">
+              <datalist id="nombres-list">
               {nombresUnicos.map(n => <option key={n} value={n} />)}
             </datalist>
             <datalist id="conceptos-list">
@@ -591,10 +600,11 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
               ))}
             </div>
             
-            <button type="submit" className="btn btn-primary w-full" disabled={loading} style={{ padding: '0.8rem', marginTop: '1.5rem' }}>
-              <Plus size={18} style={{ marginRight: '0.5rem' }} /> {loading ? "Agregando..." : "Agregar Registro"}
-            </button>
-          </form>
+              <button type="submit" className="btn btn-primary w-full" disabled={loading} style={{ padding: '0.8rem', marginTop: '1.5rem' }}>
+                <Plus size={18} style={{ marginRight: '0.5rem' }} /> {loading ? "Agregando..." : "Agregar Registro"}
+              </button>
+            </form>
+          )}
 
           <div className="glass-panel" style={{ overflowX: 'auto', padding: '1rem' }}>
             <table className="data-table">
@@ -612,13 +622,13 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                   <tr key={r.id}>
                     <td style={{ fontWeight: 500, verticalAlign: 'top' }}>
                       <span 
-                        onClick={() => openRegistroModal(r)} 
-                        style={{ cursor: 'pointer', color: 'var(--accent-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.2s' }}
-                        title="Editar Registro"
-                        onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-                        onMouseOut={(e) => e.currentTarget.style.color = 'var(--accent-primary)'}
+                        onClick={() => !isReadOnly && openRegistroModal(r)} 
+                        style={{ cursor: isReadOnly ? 'default' : 'pointer', color: isReadOnly ? 'inherit' : 'var(--accent-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.2s' }}
+                        title={isReadOnly ? "" : "Editar Registro"}
+                        onMouseOver={(e) => { if(!isReadOnly) e.currentTarget.style.color = 'var(--text-primary)' }}
+                        onMouseOut={(e) => { if(!isReadOnly) e.currentTarget.style.color = 'var(--accent-primary)' }}
                       >
-                        <Edit2 size={14} />
+                        {!isReadOnly && <Edit2 size={14} />}
                         {r.nombre}
                       </span>
                     </td>
@@ -651,7 +661,9 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                       ) : <span style={{ color: 'var(--text-muted)' }}>-</span>}
                     </td>
                     <td style={{ textAlign: 'right', width: '50px', verticalAlign: 'top' }}>
-                      <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: r.id, type: 'registro' })} className="btn-link text-danger" title="Eliminar"><Trash2 size={16} /></button>
+                      {!isReadOnly && (
+                        <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: r.id, type: 'registro' })} className="btn-link text-danger" title="Eliminar"><Trash2 size={16} /></button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -691,7 +703,7 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                     <th style={{ textAlign: 'right' }}>Importe</th>
                     <th style={{ textAlign: 'center' }}>Estado</th>
                     <th style={{ textAlign: 'center' }}>Ticket</th>
-                    <th style={{ width: '80px', textAlign: 'center' }}>Acciones</th>
+                    {!isReadOnly && <th style={{ width: '80px', textAlign: 'center' }}>Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -731,12 +743,14 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                           );
                         })()}
                       </td>
-                      <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
-                          <button onClick={() => openGastoModal(g)} className="btn-link" style={{ color: 'var(--text-secondary)' }} title="Editar"><Edit2 size={16} /></button>
-                          <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: g.id, type: 'gasto' })} className="btn-link text-danger" title="Eliminar"><Trash2 size={16} /></button>
-                        </div>
-                      </td>
+                      {!isReadOnly && (
+                        <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                            <button onClick={() => openGastoModal(g)} className="btn-link" style={{ color: 'var(--text-secondary)' }} title="Editar"><Edit2 size={16} /></button>
+                            <button onClick={() => setConfirmModal({ isOpen: true, idToDelete: g.id, type: 'gasto' })} className="btn-link text-danger" title="Eliminar"><Trash2 size={16} /></button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -852,13 +866,13 @@ export default function EntradaDetalle({ entrada }: { entrada: any }) {
                 </div>
               ) : (
                 <span 
-                  onClick={() => setIsEditingDiferencia(true)}
-                  style={{ cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'color 0.2s' }}
-                  title="Editar Diferencia"
-                  onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-                  onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+                  onClick={() => !isReadOnly && setIsEditingDiferencia(true)}
+                  style={{ cursor: isReadOnly ? 'default' : 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'color 0.2s' }}
+                  title={isReadOnly ? "" : "Editar Diferencia"}
+                  onMouseOver={(e) => { if(!isReadOnly) e.currentTarget.style.color = 'var(--text-primary)' }}
+                  onMouseOut={(e) => { if(!isReadOnly) e.currentTarget.style.color = 'var(--text-secondary)' }}
                 >
-                  <Edit2 size={16} />
+                  {!isReadOnly && <Edit2 size={16} />}
                   <span className="font-bold text-lg" style={{ color: (entrada.diferencia || 0) < 0 ? 'var(--danger)' : '#eab308' }}>
                     {(entrada.diferencia || 0) > 0 ? '+' : ''}{formatearMonto(entrada.diferencia || 0)} <small className="font-normal">MXN</small>
                   </span>

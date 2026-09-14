@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 export default function NuevaEntradaPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const isReadOnly = (session?.user as any)?.rol === "READONLY";
   const [loading, setLoading] = useState(false);
   const [fetchingRate, setFetchingRate] = useState(true);
   const [error, setError] = useState("");
@@ -19,6 +20,12 @@ export default function NuevaEntradaPage() {
     notas: "",
     elaboradoPor: ""
   });
+
+  useEffect(() => {
+    if (isReadOnly) {
+      router.push('/entradas');
+    }
+  }, [isReadOnly, router]);
 
   useEffect(() => {
     // Fetch current exchange rate automatically

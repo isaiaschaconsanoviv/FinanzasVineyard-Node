@@ -31,6 +31,9 @@ export async function POST(req: Request) {
     if (!session) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    if ((session.user as any)?.rol === "READONLY") {
+      return NextResponse.json({ error: "Permisos insuficientes" }, { status: 403 });
+    }
 
     const body = await req.json();
     const { notas, registros } = body;

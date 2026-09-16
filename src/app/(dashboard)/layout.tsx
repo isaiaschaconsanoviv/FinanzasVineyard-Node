@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Providers } from "@/components/Providers";
+import { PrismaClient } from "@prisma/client";
 
 export default async function DashboardLayout({
   children,
@@ -13,6 +14,19 @@ export default async function DashboardLayout({
 
   if (!session) {
     redirect("/login");
+  }
+
+  // Update last login date when accessing the dashboard
+  const prisma = new PrismaClient();
+  try {
+    await prisma.usuario.update({
+      where: { id: (session.user as any).id },
+      data: { lastLogin: new Date() }
+    });
+  } catch (error) {
+    console.error("Failed to update last login:", error);
+  } finally {
+    await prisma.$disconnect();
   }
 
   return (

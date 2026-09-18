@@ -26,6 +26,7 @@ export default function ProyectoPromesaPage() {
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
   const [isSubmittingAportacion, setIsSubmittingAportacion] = useState(false);
   const [fileToView, setFileToView] = useState<{ url: string, type: 'image' | 'pdf' } | null>(null);
+  const [aportacionToEdit, setAportacionToEdit] = useState<any>(null);
   
   const [promesaForm, setPromesaForm] = useState({
     persona: "", cantidadMXN: "", cantidadUSD: "", fechaLimite: "", notas: ""
@@ -46,6 +47,13 @@ export default function ProyectoPromesaPage() {
     setMounted(true);
     fetchProyecto();
   }, [id]);
+
+  useEffect(() => {
+    if (proyecto && selectedPromesaHistorial) {
+      const updatedPromesa = proyecto.promesas?.find((p: any) => p.id === selectedPromesaHistorial.id);
+      if (updatedPromesa) setSelectedPromesaHistorial(updatedPromesa);
+    }
+  }, [proyecto]);
 
   const fetchProyecto = async () => {
     try {
@@ -110,11 +118,23 @@ export default function ProyectoPromesaPage() {
     setIsPromesaModalOpen(true);
   };
 
+  const openEditAportacionModal = (aportacion: any, promesaId: string) => {
+    setAportacionToEdit(aportacion);
+    setAportacionForm({
+      promesaId,
+      cantidad: aportacion.cantidad,
+      moneda: aportacion.moneda,
+      fecha: new Date(aportacion.fecha).toISOString().split('T')[0]
+    });
+    setFileToUpload(null);
+    setIsAportacionModalOpen(true);
+  };
+
   const handleSaveAportacion = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingAportacion(true);
     try {
-      let comprobanteUrl = null;
+      let comprobanteUrl = aportacionToEdit ? aportacionToEdit.comprobante : null;
       if (fileToUpload) {
         const uploadData = new FormData();
         uploadData.append("files", fileToUpload);
@@ -128,8 +148,11 @@ export default function ProyectoPromesaPage() {
         }
       }
 
-      const res = await fetch('/api/aportaciones-promesas', {
-        method: 'POST',
+      const method = aportacionToEdit ? 'PUT' : 'POST';
+      const url = aportacionToEdit ? `/api/aportaciones-promesas/${aportacionToEdit.id}` : '/api/aportaciones-promesas';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...aportacionForm, comprobante: comprobanteUrl })
       });
@@ -137,12 +160,25 @@ export default function ProyectoPromesaPage() {
         setIsAportacionModalOpen(false);
         setAportacionForm({ promesaId: "", cantidad: "", moneda: "MXN", fecha: new Date().toISOString().split('T')[0] });
         setFileToUpload(null);
+        setAportacionToEdit(null);
         fetchProyecto();
       }
     } catch (e) {
       console.error(e);
     } finally {
       setIsSubmittingAportacion(false);
+    }
+  };
+
+  const handleDeleteAportacion = async (id: string) => {
+    if (!confirm("¿Seguro que deseas eliminar esta aportación?")) return;
+    try {
+      const res = await fetch(`/api/aportaciones-promesas/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchProyecto();
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -208,7 +244,7 @@ export default function ProyectoPromesaPage() {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
           {!isReadOnly && (
             <>
-              <button className="btn btn-dark" onClick={() => setIsAportacionModalOpen(true)}>
+              <button className="btn btn-dark" onClick={() => { setAportacionToEdit(null); setIsAportacionModalOpen(true); }}>
                 <DollarSign size={18} /> Registrar Aportación
               </button>
               <button className="btn btn-primary" onClick={openNewPromesaModal}>
@@ -451,7 +487,7 @@ export default function ProyectoPromesaPage() {
           zIndex: 1000
         }}>
           <div className="glass-panel" style={{ width: '90%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
-            <h2 className="text-xl font-bold mb-4">Registrar Aportación</h2>
+            <h2 className="text-xl font-bold mb-4">{aportacionToEdit ? 'Editar Aportación' : 'Registrar Aportación'}</h2>
             <form onSubmit={handleSaveAportacion} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="input-group">
                 <label>Promesa de...</label>
@@ -467,6 +503,7 @@ export default function ProyectoPromesaPage() {
                       label: p.persona
                     })) || []
                   }
+                  disabled={!!aportacionToEdit}
                 />
               </div>
               <div className="input-group">
@@ -528,7 +565,7 @@ export default function ProyectoPromesaPage() {
                 )}
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary flex-1" onClick={() => { setIsAportacionModalOpen(false); setFileToUpload(null); }} disabled={isSubmittingAportacion}>Cancelar</button>
+                <button type="button" className="btn btn-secondary flex-1" onClick={() => { setIsAportacionModalOpen(false); setFileToUpload(null); setAportacionToEdit(null); }} disabled={isSubmittingAportacion}>Cancelar</button>
                 <button type="submit" className="btn btn-primary flex-1" disabled={isSubmittingAportacion}>
                   {isSubmittingAportacion ? 'Guardando...' : 'Guardar'}
                 </button>
@@ -563,18 +600,42 @@ export default function ProyectoPromesaPage() {
                         <div className="font-bold text-lg text-success">${aportacion.cantidad.toLocaleString()} {aportacion.moneda}</div>
                         <div className="text-sm text-gray-400">{new Date(aportacion.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC' })}</div>
                       </div>
-                      {aportacion.comprobante && (
-                        <button 
-                          className="btn btn-secondary btn-sm" 
-                          style={{ padding: '0.5rem 1rem' }}
-                          onClick={() => setFileToView({ 
-                            url: aportacion.comprobante, 
-                            type: aportacion.comprobante.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image' 
-                          })}
-                        >
-                          <FileText size={16} className="mr-2" /> Ver Comprobante
-                        </button>
-                      )}
+                      
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                        {aportacion.comprobante && (
+                          <button 
+                            className="btn btn-secondary btn-sm" 
+                            style={{ padding: '0.5rem 1rem' }}
+                            onClick={() => setFileToView({ 
+                              url: aportacion.comprobante, 
+                              type: aportacion.comprobante.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image' 
+                            })}
+                          >
+                            <FileText size={16} className="mr-2 hide-on-mobile" /> Ver
+                          </button>
+                        )}
+                        
+                        {!isReadOnly && (
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button 
+                              className="btn btn-dark btn-sm" 
+                              style={{ padding: '0.4rem' }}
+                              onClick={() => openEditAportacionModal(aportacion, selectedPromesaHistorial.id)}
+                              title="Editar"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button 
+                              className="btn btn-danger btn-sm" 
+                              style={{ padding: '0.4rem' }}
+                              onClick={() => handleDeleteAportacion(aportacion.id)}
+                              title="Eliminar"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

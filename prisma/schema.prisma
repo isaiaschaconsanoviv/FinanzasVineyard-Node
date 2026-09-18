@@ -140,4 +140,5 @@ model AportacionPromesa {
   fecha       DateTime  @default(now())
   entradaId   String?   @db.ObjectId
   entrada     Entrada?  @relation(fields: [entradaId], references: [id], onDelete: SetNull)
+  comprobante String?
 }

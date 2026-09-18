@@ -24,7 +24,8 @@ export async function POST(req: Request) {
         cantidad: parseFloat(data.cantidad),
         moneda: data.moneda, // "MXN" o "USD"
         fecha: data.fecha ? new Date(data.fecha) : new Date(),
-        entradaId: data.entradaId || null
+        entradaId: data.entradaId || null,
+        comprobante: data.comprobante || null
       }
     });
 

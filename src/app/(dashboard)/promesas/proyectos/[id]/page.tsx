@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Select } from "@/components/ui/Select";
-import { ArrowLeft, Plus, DollarSign, Target, Calendar, Trash2, Edit2 } from "lucide-react";
+import { ArrowLeft, Plus, DollarSign, Target, Calendar, Trash2, Edit2, UploadCloud, Image as ImageIcon, FileText, List } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { FileViewerModal } from "@/components/ui/FileViewerModal";
 
 export default function ProyectoPromesaPage() {
   const { id } = useParams();
@@ -20,6 +21,11 @@ export default function ProyectoPromesaPage() {
   
   const [isPromesaModalOpen, setIsPromesaModalOpen] = useState(false);
   const [isAportacionModalOpen, setIsAportacionModalOpen] = useState(false);
+  const [isHistorialModalOpen, setIsHistorialModalOpen] = useState(false);
+  const [selectedPromesaHistorial, setSelectedPromesaHistorial] = useState<any>(null);
+  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+  const [isSubmittingAportacion, setIsSubmittingAportacion] = useState(false);
+  const [fileToView, setFileToView] = useState<{ url: string, type: 'image' | 'pdf' } | null>(null);
   
   const [promesaForm, setPromesaForm] = useState({
     persona: "", cantidadMXN: "", cantidadUSD: "", fechaLimite: "", notas: ""
@@ -106,19 +112,37 @@ export default function ProyectoPromesaPage() {
 
   const handleSaveAportacion = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmittingAportacion(true);
     try {
+      let comprobanteUrl = null;
+      if (fileToUpload) {
+        const uploadData = new FormData();
+        uploadData.append("files", fileToUpload);
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadData,
+        });
+        if (uploadRes.ok) {
+          const uploadJson = await uploadRes.json();
+          comprobanteUrl = uploadJson.urls ? uploadJson.urls[0] : uploadJson.url;
+        }
+      }
+
       const res = await fetch('/api/aportaciones-promesas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(aportacionForm)
+        body: JSON.stringify({ ...aportacionForm, comprobante: comprobanteUrl })
       });
       if (res.ok) {
         setIsAportacionModalOpen(false);
         setAportacionForm({ promesaId: "", cantidad: "", moneda: "MXN", fecha: new Date().toISOString().split('T')[0] });
+        setFileToUpload(null);
         fetchProyecto();
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsSubmittingAportacion(false);
     }
   };
 
@@ -283,6 +307,14 @@ export default function ProyectoPromesaPage() {
                         <button 
                           className="btn btn-dark btn-sm" 
                           style={{ padding: '0.4rem', marginRight: '0.5rem' }}
+                          title="Ver Historial de Aportaciones"
+                          onClick={(e) => { e.stopPropagation(); setSelectedPromesaHistorial(promesa); setIsHistorialModalOpen(true); }}
+                        >
+                          <List size={16} />
+                        </button>
+                        <button 
+                          className="btn btn-dark btn-sm" 
+                          style={{ padding: '0.4rem', marginRight: '0.5rem' }}
                           onClick={(e) => { e.stopPropagation(); openEditPromesaModal(promesa); }}
                         >
                           <Edit2 size={16} />
@@ -319,6 +351,13 @@ export default function ProyectoPromesaPage() {
                           
                           {!isReadOnly && (
                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                              <button 
+                                className="btn btn-dark btn-sm flex-1" 
+                                style={{ padding: '0.5rem', justifyContent: 'center' }}
+                                onClick={() => { setSelectedPromesaHistorial(promesa); setIsHistorialModalOpen(true); }}
+                              >
+                                <List size={16} style={{ marginRight: '0.25rem' }} /> Historial
+                              </button>
                               <button 
                                 className="btn btn-dark btn-sm flex-1" 
                                 style={{ padding: '0.5rem', justifyContent: 'center' }}
@@ -456,15 +495,107 @@ export default function ProyectoPromesaPage() {
                   value={aportacionForm.fecha} onChange={e => setAportacionForm({...aportacionForm, fecha: e.target.value})} 
                 />
               </div>
+              <div className="input-group">
+                <label>Comprobante (Opcional)</label>
+                {fileToUpload ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderRadius: '0.5rem', background: 'rgba(139, 92, 246, 0.05)', border: '1px dashed var(--accent-primary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+                      <ImageIcon size={18} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+                      <span className="text-sm truncate" style={{ color: 'var(--accent-primary)', fontWeight: 500 }}>{fileToUpload.name}</span>
+                    </div>
+                    <button type="button" onClick={() => setFileToUpload(null)} style={{ color: 'var(--danger)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem' }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      id="comprobante-upload"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          setFileToUpload(e.target.files[0]);
+                        }
+                      }}
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="comprobante-upload" className="btn btn-secondary w-full" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderStyle: 'dashed', cursor: 'pointer' }}>
+                      <UploadCloud size={18} />
+                      <span>Seleccionar Archivo</span>
+                    </label>
+                  </>
+                )}
+              </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary flex-1" onClick={() => setIsAportacionModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="btn btn-primary flex-1">Guardar</button>
+                <button type="button" className="btn btn-secondary flex-1" onClick={() => { setIsAportacionModalOpen(false); setFileToUpload(null); }} disabled={isSubmittingAportacion}>Cancelar</button>
+                <button type="submit" className="btn btn-primary flex-1" disabled={isSubmittingAportacion}>
+                  {isSubmittingAportacion ? 'Guardando...' : 'Guardar'}
+                </button>
               </div>
             </form>
           </div>
         </div>,
         document.body
       )}
+      {/* Modal Historial de Aportaciones */}
+      {isHistorialModalOpen && selectedPromesaHistorial && mounted && createPortal(
+        <div className="modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div className="glass-panel" style={{ width: '90%', maxWidth: '600px', padding: '2rem', position: 'relative', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 className="text-xl font-bold">Historial de Aportaciones</h2>
+              <button className="btn btn-dark btn-sm" onClick={() => { setIsHistorialModalOpen(false); setSelectedPromesaHistorial(null); }}>Cerrar</button>
+            </div>
+            <p className="text-gray-400 mb-4">Promesa de: <span className="font-semibold text-white">{selectedPromesaHistorial.persona}</span></p>
+            
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              {selectedPromesaHistorial.aportaciones && selectedPromesaHistorial.aportaciones.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {selectedPromesaHistorial.aportaciones.map((aportacion: any) => (
+                    <div key={aportacion.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <div>
+                        <div className="font-bold text-lg text-success">${aportacion.cantidad.toLocaleString()} {aportacion.moneda}</div>
+                        <div className="text-sm text-gray-400">{new Date(aportacion.fecha).toLocaleDateString('es-MX', { timeZone: 'UTC' })}</div>
+                      </div>
+                      {aportacion.comprobante && (
+                        <button 
+                          className="btn btn-secondary btn-sm" 
+                          style={{ padding: '0.5rem 1rem' }}
+                          onClick={() => setFileToView({ 
+                            url: aportacion.comprobante, 
+                            type: aportacion.comprobante.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image' 
+                          })}
+                        >
+                          <FileText size={16} className="mr-2" /> Ver Comprobante
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-gray-400 py-8">
+                  No hay aportaciones registradas para esta promesa.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Visor de Archivos */}
+      <FileViewerModal 
+        isOpen={!!fileToView} 
+        onClose={() => setFileToView(null)}
+        fileUrl={fileToView?.url || ''}
+        fileType={fileToView?.type || 'image'}
+      />
     </div>
   );
 }

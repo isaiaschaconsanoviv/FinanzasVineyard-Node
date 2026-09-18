@@ -12,9 +12,10 @@ interface SelectProps {
   options: Option[];
   onChange: (e: { target: { name: string; value: string } }) => void;
   required?: boolean;
+  disabled?: boolean;
 }
 
-export function Select({ id, name, value, options, onChange, required }: SelectProps) {
+export function Select({ id, name, value, options, onChange, required, disabled }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +42,9 @@ export function Select({ id, name, value, options, onChange, required }: SelectP
         type="button"
         id={id}
         className={`input-field custom-select-trigger ${isOpen ? 'is-open' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        style={disabled ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
       >
         <span>{selectedOption ? selectedOption.label : "Selecciona una opción"}</span>
         <svg 

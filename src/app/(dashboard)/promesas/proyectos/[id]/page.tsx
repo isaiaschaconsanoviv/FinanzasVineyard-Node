@@ -594,7 +594,6 @@ export default function ProyectoPromesaPage() {
         isOpen={!!fileToView} 
         onClose={() => setFileToView(null)}
         fileUrl={fileToView?.url || ''}
-        fileType={fileToView?.type || 'image'}
       />
     </div>
   );
